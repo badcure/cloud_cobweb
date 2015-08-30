@@ -24,7 +24,7 @@ def server_list():
     api_obj = api_type(global_ident)
     list_obj = api_obj.get_list(region)
     if should_populate:
-        list_obj.populate_info(global_ident)
+        list_obj.populate_info(global_ident, region=region)
 
     return jsonify(request=list_obj)
 
@@ -63,6 +63,8 @@ def monitoring_list():
     result_list.append(list_obj.monitoring_agent_list())
     if should_populate:
         result_list[-1].populate_info(identity_obj=global_ident)
+    result_list.append(list_obj.get_list(initial_url_append='/views/overview'))
+
 
     return jsonify(request=result_list)
 

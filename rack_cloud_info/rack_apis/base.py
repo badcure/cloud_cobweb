@@ -10,7 +10,7 @@ class RestfulList(list):
     _key = None
     _sub_object = None
 
-    def populate_info(self, identity_obj):
+    def populate_info(self, identity_obj, region=None):
         from rack_cloud_info.rack_apis.identity import Identity
 
         if not isinstance(identity_obj, Identity):
@@ -25,7 +25,7 @@ class RestfulList(list):
             for index, result_obj in enumerate(result):
                 if not isinstance(result_obj, self._sub_object):
                     result[index] = self._sub_object(result_obj)
-                result[index].populate_info(identity_obj)
+                result[index].populate_info(identity_obj, region=region)
 
 
 class RestfulObject(dict):
@@ -56,7 +56,7 @@ class RestfulObject(dict):
     def _fix_link_url(self, value):
         return value
 
-    def populate_info(self, identity_obj, link_type='self', update_self=True, **kwargs):
+    def populate_info(self, identity_obj, link_type='self', update_self=True, region=None, **kwargs):
         from rack_cloud_info.rack_apis.identity import Identity
         if not isinstance(identity_obj, Identity):
             raise ValueError('Expected Identity obj, got {0}'.format(type(identity_obj)))

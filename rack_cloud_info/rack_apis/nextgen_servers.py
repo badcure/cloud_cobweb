@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import types
+import requests
 from rack_cloud_info.rack_apis.base import RackAPIBase, RestfulList, \
     RestfulObject
 from rack_cloud_info.rack_apis.identity import Identity
@@ -30,7 +31,7 @@ class Flavor(RestfulObject):
 class Server(RestfulObject):
     _key = 'server'
 
-    def populate_info(self, identity_obj, **kwargs):
+    def populate_info(self, identity_obj, region=None, **kwargs):
         super(Server, self).populate_info(identity_obj)
 
         if isinstance(self.root_dict.get('image'), types.DictionaryType):
@@ -48,6 +49,19 @@ class Server(RestfulObject):
             raise ValueError("'flavor' is not defined or not an flavor {0}".format(type(self.root_dict.get('image'))))
 
         self.flavor.populate_info(identity_obj, **kwargs)
+
+        monitoring_url = identity_obj.service_catalog(name='cloudMonitoring')[0]['endpoints'][0]['publicURL']
+        monitoring_url += '/views/overview?uri={uri}'.format(uri=self.link(type='bookmark'))
+        self['monitoring'] = identity_obj.displable_json_auth_request(url=monitoring_url)
+
+        backup_url = identity_obj.service_catalog(name='cloudBackup', region=region)[0]['endpoints'][0]['publicURL']
+        print region
+        backup_url += '/agent/server/{hostServerId}'.format(hostServerId=self.root_dict['id'])
+        print backup_url
+        try:
+            self['backup'] = identity_obj.displable_json_auth_request(url=backup_url)
+        except requests.HTTPError as http_error:
+            self['backup'] = http_error.response.url
 
         return None
 

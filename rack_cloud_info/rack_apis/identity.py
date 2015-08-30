@@ -108,7 +108,7 @@ class User(RestfulObject):
     def _fix_link_url(self, value):
         return value.replace('rackspacecloud.com/', 'rackspacecloud.com/v2/')
 
-    def populate_info(self, identity_obj, **kargs):
+    def populate_info(self, identity_obj, region=None, **kargs):
         self._details_url = BASE_URL + "/v2.0/users/{userId}/OS-KSADM/credentials/"
         self._details_url = self._details_url.format(userId=self.root_dict['id'])
         result = super(User, self).populate_info(identity_obj, update_self=False)
