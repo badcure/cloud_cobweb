@@ -2,7 +2,7 @@ from flask import Flask
 from flask.json import jsonify
 from flask import request
 import os
-from rack_cloud_info.rack_apis.identity import Identity
+from rack_cloud_info.rack_apis.identity import Identity, UserAPI
 from rack_cloud_info.rack_apis.nextgen_servers import ServersAPI, ImagesAPI
 app = Flask(__name__)
 
@@ -30,6 +30,16 @@ def image_list():
     region = request.args.get('region', DEFAULT_REGION)
     should_populate = request.args.get('populate', False)
     images = list_obj(global_ident).get_list(region)
+    if should_populate:
+        images.populate_info(global_ident)
+
+    return jsonify(request=images)
+
+@app.route('/users')
+def user_list():
+    list_obj = UserAPI
+    should_populate = request.args.get('populate', False)
+    images = list_obj(global_ident).get_list()
     if should_populate:
         images.populate_info(global_ident)
 

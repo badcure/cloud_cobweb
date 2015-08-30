@@ -31,6 +31,8 @@ class RestfulList(list):
 class RestfulObject(dict):
     _key = None
     _need_key = False
+    _details_url = None
+    _update_self = True
 
     @property
     def root_dict(self):
@@ -54,21 +56,27 @@ class RestfulObject(dict):
     def _fix_link_url(self, value):
         return value
 
-    def populate_info(self, identity_obj, link_type='self'):
+    def populate_info(self, identity_obj, link_type='self', update_self=True):
         from rack_cloud_info.rack_apis.identity import Identity
         if not isinstance(identity_obj, Identity):
             raise ValueError('Expected Identity obj, got {0}'.format(type(identity_obj)))
-        result = identity_obj.displable_json_auth_request(url=self.link(type=link_type),method='get')
+        result = identity_obj.displable_json_auth_request(url=self.details_url,method='get')
         print "Updating {0}, key is {1}".format(self.__class__.__name__, self._key)
 
         # Delete everything current
-        self_key_list = self.keys()
-        for self_key in self_key_list:
-            del self[self_key]
-        self.update(result)
-        print self.keys()
-        return None
+        if update_self:
+            self_key_list = self.keys()
+            for self_key in self_key_list:
+                del self[self_key]
+            self.update(result)
+            return None
+        return result
 
+    @property
+    def details_url(self):
+        if not self._details_url:
+            self._details_url = self._details_url or self.link(type='self') or self.link(type='bookmark')
+        return self._details_url
 
 class RackAPIBase(object):
     _identity = None
