@@ -1,0 +1,8 @@
+celery
+celery[redis]
+flask
+requests
+pymongo
+redis
+pyyaml
+configobj
