@@ -95,4 +95,7 @@ class Identity(RackAPIBase):
             result = new_result
         return result
 
-
+    def display_safe(self):
+        result_dict = copy.deepcopy(self._auth)
+        result_dict['access']['token']['id'] = '<masked>'
+        return result_dict
