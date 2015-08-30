@@ -4,6 +4,8 @@ from flask import request
 import os
 from rack_cloud_info.rack_apis.identity import Identity, UserAPI
 from rack_cloud_info.rack_apis.nextgen_servers import ServersAPI, ImagesAPI
+from rack_cloud_info.rack_apis.monitoring import MonitoringAPI
+
 app = Flask(__name__)
 
 from requests.packages import urllib3
@@ -12,6 +14,8 @@ urllib3.disable_warnings()
 global_ident = Identity(os.environ['CLOUD_USER'], os.environ['CLOUD_API'])
 
 DEFAULT_REGION = 'ORD'
+
+
 @app.route('/servers')
 def server_list():
     api_type = ServersAPI
@@ -24,6 +28,7 @@ def server_list():
 
     return jsonify(request=list_obj)
 
+
 @app.route('/images')
 def image_list():
     list_obj = ImagesAPI
@@ -35,6 +40,7 @@ def image_list():
 
     return jsonify(request=images)
 
+
 @app.route('/users')
 def user_list():
     list_obj = UserAPI
@@ -44,6 +50,21 @@ def user_list():
         images.populate_info(global_ident)
 
     return jsonify(request=images)
+
+
+@app.route('/monitoring')
+def monitoring_list():
+    list_obj = MonitoringAPI(global_ident)
+    should_populate = request.args.get('populate', False)
+
+    result_list = []
+    result_list.append(list_obj.get_list(initial_url_append='/account'))
+    result_list.append(list_obj.get_list(initial_url_append='/entities'))
+    result_list.append(list_obj.monitoring_agent_list())
+    if should_populate:
+        result_list[-1].populate_info(identity_obj=global_ident)
+
+    return jsonify(request=result_list)
 
 
 @app.route('/auth_token')

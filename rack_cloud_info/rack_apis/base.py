@@ -43,7 +43,7 @@ class RestfulObject(dict):
 
     @property
     def links(self):
-        return self.root_dict['links']
+        return self.root_dict.get('links', [])
 
     def link(self, type='bookmark'):
         for link_info in self.links:
@@ -56,11 +56,11 @@ class RestfulObject(dict):
     def _fix_link_url(self, value):
         return value
 
-    def populate_info(self, identity_obj, link_type='self', update_self=True):
+    def populate_info(self, identity_obj, link_type='self', update_self=True, **kwargs):
         from rack_cloud_info.rack_apis.identity import Identity
         if not isinstance(identity_obj, Identity):
             raise ValueError('Expected Identity obj, got {0}'.format(type(identity_obj)))
-        result = identity_obj.displable_json_auth_request(url=self.details_url,method='get')
+        result = identity_obj.displable_json_auth_request(url=self.details_url(identity_obj=identity_obj),method='get')
         print "Updating {0}, key is {1}".format(self.__class__.__name__, self._key)
 
         # Delete everything current
@@ -72,8 +72,7 @@ class RestfulObject(dict):
             return None
         return result
 
-    @property
-    def details_url(self):
+    def details_url(self, **kwargs):
         if not self._details_url:
             self._details_url = self._details_url or self.link(type='self') or self.link(type='bookmark')
         return self._details_url
@@ -134,10 +133,13 @@ class RackAPIBase(object):
         return [endpoint.get('publicURL') for endpoint in
                 result[0]['endpoints']]
 
-    def get_list(self, region):
+    def get_list(self, region=None, initial_url_append=None, data_object=None):
         result_list = []
+        if not initial_url_append:
+            initial_url_append = self._initial_url_append
+
         region_url = self.nextgen_endpoint_urls(region=region)[0]
-        url = "{0}{1}".format(region_url, self._initial_url_append)
+        url = "{0}{1}".format(region_url, initial_url_append)
         while url:
             print "Next url " + url
             result = self.displable_json_auth_request(url=url)
@@ -147,7 +149,9 @@ class RackAPIBase(object):
                 url = url.replace('/v2/v2', '/v2')
             else:
                 url = None
-
-        return self._list_object(result_list)
+        if data_object:
+            return data_object(result_list)
+        else:
+            return self._list_object(result_list)
 
 
