@@ -14,7 +14,6 @@ class Identity(RackAPIBase):
     _auth = None
 
     def __init__(self, username, apikey):
-        super(Identity, self).__init__()
         self._username = username
         self._apikey = apikey
 
