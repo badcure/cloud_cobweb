@@ -35,33 +35,27 @@ class Server(RestfulObject):
         super(Server, self).populate_info(identity_obj)
 
         if isinstance(self.root_dict.get('image'), types.DictionaryType):
-            self.root_dict['image'] = Image(self.root_dict['image'])
+            self['image_details'] = Image(self.root_dict['image'])
 
-        if not isinstance(self.root_dict.get('image'), Image):
-            raise ValueError("'image' is not defined or not an image {0}".format(type(self.root_dict.get('image'))))
-
-        self.image.populate_info(identity_obj, **kwargs)
+        self['image_details'].populate_info(identity_obj, **kwargs)
 
         if isinstance(self.root_dict.get('flavor'), types.DictionaryType):
-            self.root_dict['flavor'] = Flavor(self.root_dict['flavor'])
+            self['flavor_details'] = Image(self.root_dict['flavor'])
 
-        if not isinstance(self.root_dict.get('flavor'), Flavor):
-            raise ValueError("'flavor' is not defined or not an flavor {0}".format(type(self.root_dict.get('image'))))
-
-        self.flavor.populate_info(identity_obj, **kwargs)
+        self['flavor_details'].populate_info(identity_obj, **kwargs)
 
         monitoring_url = identity_obj.service_catalog(name='cloudMonitoring')[0]['endpoints'][0]['publicURL']
         monitoring_url += '/views/overview?uri={uri}'.format(uri=self.link(type='bookmark'))
-        self['monitoring'] = identity_obj.displable_json_auth_request(url=monitoring_url)
+        self['monitoring_details'] = identity_obj.displable_json_auth_request(url=monitoring_url)
 
         backup_url = identity_obj.service_catalog(name='cloudBackup', region=region)[0]['endpoints'][0]['publicURL']
         print region
         backup_url += '/agent/server/{hostServerId}'.format(hostServerId=self.root_dict['id'])
         print backup_url
         try:
-            self['backup'] = identity_obj.displable_json_auth_request(url=backup_url)
+            self['backup_details'] = identity_obj.displable_json_auth_request(url=backup_url)
         except requests.HTTPError as http_error:
-            self['backup'] = http_error.response.url
+            self['backup_details'] = http_error.response.url
 
         return None
 

@@ -99,8 +99,12 @@ class RackAPIBase(object):
         kwargs['headers'] = kwargs.get('headers', {})
         kwargs['headers']['X-Auth-Token'] = self.token
         result = self.display_base_request(**kwargs)
-        result.raise_for_status()
-        json_result = result.json()
+        json_result = dict()
+        try:
+            json_result.update(result.json())
+        except ValueError:
+            json_result['result'] = result.text
+
         json_result['_cloud_info_request'] = {}
         json_result['_cloud_info_request']['url'] = result.request.url
         json_result['_cloud_info_request']['method'] = result.request.method
@@ -108,6 +112,10 @@ class RackAPIBase(object):
         for header_name in MASK_HEADERS:
             if header_name in json_result['_cloud_info_request']['headers']:
                 json_result['_cloud_info_request']['headers'][header_name] = '<masked>'
+        json_result['_cloud_info_response'] = dict()
+        #json_result['_cloud_info_response']['headers'] = dict(result.headers)
+        json_result['_cloud_info_response']['status_code'] = result.status_code
+
         return json_result
 
     @staticmethod

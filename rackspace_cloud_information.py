@@ -5,6 +5,7 @@ import os
 from rack_cloud_info.rack_apis.identity import Identity, UserAPI
 from rack_cloud_info.rack_apis.nextgen_servers import ServersAPI, ImagesAPI
 from rack_cloud_info.rack_apis.monitoring import MonitoringAPI
+from rack_cloud_info.rack_apis.backup import BackupAPI
 
 app = Flask(__name__)
 
@@ -65,13 +66,23 @@ def monitoring_list():
         result_list[-1].populate_info(identity_obj=global_ident)
     result_list.append(list_obj.get_list(initial_url_append='/views/overview'))
 
+    return jsonify(request=result_list)
+
+
+@app.route('/backups')
+def backups_list():
+    list_obj = BackupAPI(global_ident)
+    should_populate = request.args.get('populate', False)
+
+    result_list = []
+    result_list.append(list_obj.backup_agents_list())
 
     return jsonify(request=result_list)
 
 
 @app.route('/auth_token')
 def auth_token_view():
-    global_ident.token
+    global_ident.authenticate()
     return jsonify(global_ident.display_safe())
 
 
