@@ -6,3 +6,6 @@ pymongo
 redis
 pyyaml
 configobj
+flask_restful
+flask-login
+Flask-WTF

@@ -14,14 +14,15 @@ class Identity(RackAPIBase):
     _apikey = None
     _auth = None
 
-    def __init__(self, username, apikey):
+    def __init__(self, username=None, apikey=None, auth_info=None):
         self._username = username
         self._apikey = apikey
+        self._auth = auth_info
 
-    def authenticate(self):
+    def authenticate(self, apikey=None):
         """
         http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/POST_authenticate_v2.0_tokens_Token_Calls.html        """
-        payload = self.generate_apikey_auth_payload()
+        payload = self.generate_apikey_auth_payload(apikey=None)
         url = "{0}/v2.0/tokens".format(BASE_URL)
         result = self.base_request(method='post', data=payload, url=url)
         result.raise_for_status()
@@ -47,17 +48,22 @@ class Identity(RackAPIBase):
 
     @property
     def token(self):
-        self.prepare_auth()
+        try:
+            self.prepare_auth()
+        except requests.HTTPError as http_exc:
+            print "Error response {status_code}: {message}".format(status_code=http_exc.response.status_code,
+                                                                   message=http_exc.response.text)
+            return None
         if self._auth:
             return self._auth['access']['token']['id']
         return None
 
-    def generate_apikey_auth_payload(self):
+    def generate_apikey_auth_payload(self, apikey=None):
         result = {
             "auth": {
                 "RAX-KSKEY:apiKeyCredentials":{
                     "username": self._username,
-                    "apiKey": self._apikey}
+                    "apiKey": apikey or self._apikey}
             }
         }
         return result

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul class=flashes>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
+{% if logged_in %}
+You are logged in, <a href="/logout">logout here.</a>
+{% else %}
+<form method="POST">
+    {{ form.hidden_tag() }}
+
+    {% for field in form %}
+    {% if field.widget.input_type != 'hidden' %} {{ field.label }} {% endif %}
+    {{ field }}<br>
+    {% endfor %}
+    <input type="submit" name="Login">
+{% endif %}
+</form>
+</body>
+</html>
