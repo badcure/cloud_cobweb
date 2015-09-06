@@ -5,7 +5,59 @@
     <title>Homepage</title>
 </head>
 <body>
-Rackspace Info
+<h1>Rackspace Info</h1>
+Expires in
+{% if expire_time > 7200 %}
+    {{ (expire_time/3600)|int }} hour(s)
+{% elif expire_time > 60 %}
+    {{ (expire_time/60)|int }} minute(s)
+{% else %}
+    {{ expire_time }} seconds.
+{% endif %}
+<br>
 
+See complete auth <a href="/auth_token">here</a>
+<h2>Roles</h2>
+<ul>
+    {% for role in roles %}
+    <li><b>{{ role.name }}</b> - {{ role.description }}</li>
+    {% endfor %}
+</ul>
+<h2>Service Catalog</h2>
+<ul>
+    {% for role in service_catalog %}
+    <li>
+        {% if role.name == 'cloudServersOpenStack' %}
+        <a href="http://docs.rackspace.com/servers/api/v2/cs-devguide/content/ch_api_operations.html">{{ role.name }}</a>
+        <ul>
+        {% for endpoint in role.endpoints %}
+        <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/servers?region={{ endpoint.region}}">Show</a>
+        {% endfor %}
+        </ul>
+        {% elif role.name == 'cloudMonitoring' %}
+        <a href="http://docs.rackspace.com/cm/api/v1.0/cm-devguide/content/service-api-operations.html">{{ role.name }}</a>
+        <ul>
+            {% for endpoint in role.endpoints %}
+            <li> All regions - {{endpoint.publicURL}} - <a href="/monitoring">Show</a>
+            {% endfor %}
+        </ul>
+        {% elif role.name == 'cloudBackup' %}
+        <a href="http://docs.rackspace.com/rcbu/api/v1.0/rcbu-devguide/content/operations.html">{{ role.name }}</a>
+        <ul>
+            {% for endpoint in role.endpoints %}
+            <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/backups?region={{ endpoint.region}}">Show</a>
+            {% endfor %}
+        </ul>
+        {% else %}
+        {{ role.name }}
+        <ul>
+        {% for endpoint in role.endpoints %}
+        <li> Region {{endpoint.region}} - {{endpoint.publicURL}}</li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
 </body>
 </html>

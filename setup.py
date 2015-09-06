@@ -1,6 +1,7 @@
 import re
 
 from setuptools import setup
+
 def match(x):
     #ignore comments
     if re.search(r'(^\s*#)', x):
@@ -8,9 +9,9 @@ def match(x):
     return True
 
 def replace(x):
-    match = re.search(r'egg=(.*)', x)
-    if match:
-        return match.group(1)
+    match_replace = re.search(r'egg=(.*)', x)
+    if match_replace:
+        return match_replace.group(1)
     return x
 
 with open('requirements.txt') as f:

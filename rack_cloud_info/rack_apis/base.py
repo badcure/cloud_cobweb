@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import types
 import json
 import requests
 
@@ -17,37 +16,43 @@ class RestfulList(list):
             raise ValueError('Expected Identity obj, got {0}'.format(type(identity_obj)))
 
         for result in self:
-            if isinstance(result, types.DictionaryType):
+            if isinstance(result, dict):
                 result = result[self._key]
-            if not isinstance(result, types.ListType):
+            if not isinstance(result, list):
                 raise ValueError("Result is not list, type is {0}".format(type(result)))
 
             for index, result_obj in enumerate(result):
-                if not isinstance(result_obj, self._sub_object):
+                if not isinstance(result_obj, self.sub_object_class):
                     result[index] = self._sub_object(result_obj)
                 result[index].populate_info(identity_obj, region=region)
 
+    @property
+    def sub_object_class(self):
+        return self._sub_object
+
+    @sub_object_class.setter
+    def sub_object_class(self, value):
+        if not issubclass(value, RestfulObject):
+            raise ValueError("Class is not a type of RestfulObject: {0}".format(type(value)))
+        self._sub_object = value
+
 
 class RestfulObject(dict):
-    _key = None
+    _key = ''
     _need_key = False
     _details_url = None
     _update_self = True
 
     @property
     def root_dict(self):
-        if self._key in self:
-            return self[self._key]
+        if isinstance(super().get(self._key), dict):
+            return super()[self._key]
 
-        return self
+        return super()
 
-    @property
-    def links(self):
-        return self.root_dict.get('links', [])
-
-    def link(self, type='bookmark'):
-        for link_info in self.links:
-            if link_info.get('rel') == type:
+    def link(self, link_type='bookmark'):
+        for link_info in self.root_dict.get('links', list()):
+            if link_info.get('rel') == link_type:
                 result = self._fix_link_url(link_info['href'])
                 return result
 
@@ -60,21 +65,20 @@ class RestfulObject(dict):
         from rack_cloud_info.rack_apis.identity import Identity
         if not isinstance(identity_obj, Identity):
             raise ValueError('Expected Identity obj, got {0}'.format(type(identity_obj)))
-        result = identity_obj.displable_json_auth_request(url=self.details_url(identity_obj=identity_obj),method='get')
-        print "Updating {0}, key is {1}".format(self.__class__.__name__, self._key)
+        result = identity_obj.displayable_json_auth_request(url=self.details_url(identity_obj=identity_obj),method='get')
 
         # Delete everything current
         if update_self:
             self_key_list = self.keys()
             for self_key in self_key_list:
                 del self[self_key]
-            self.update(result)
+            super().update(result)
             return None
         return result
 
     def details_url(self, **kwargs):
         if not self._details_url:
-            self._details_url = self._details_url or self.link(type='self') or self.link(type='bookmark')
+            self._details_url = self._details_url or self.link(link_type='self') or self.link(link_type='bookmark')
         return self._details_url
 
 class RackAPIBase(object):
@@ -95,7 +99,7 @@ class RackAPIBase(object):
         result = self.display_base_request(**kwargs)
         return result
 
-    def displable_json_auth_request(self, **kwargs):
+    def displayable_json_auth_request(self, **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
         kwargs['headers']['X-Auth-Token'] = self.token
         result = self.display_base_request(**kwargs)
@@ -113,14 +117,13 @@ class RackAPIBase(object):
             if header_name in json_result['_cloud_info_request']['headers']:
                 json_result['_cloud_info_request']['headers'][header_name] = '<masked>'
         json_result['_cloud_info_response'] = dict()
-        #json_result['_cloud_info_response']['headers'] = dict(result.headers)
         json_result['_cloud_info_response']['status_code'] = result.status_code
 
         return json_result
 
     @staticmethod
     def base_request(method='get', **kwargs):
-        if isinstance(kwargs.get('data'), types.DictionaryType):
+        if isinstance(kwargs.get('data'), dict):
             kwargs['data'] = json.dumps(kwargs['data'])
             kwargs['headers'] = kwargs.get('headers', {})
             kwargs['headers']['Content-Type'] = 'application/json'
@@ -128,7 +131,7 @@ class RackAPIBase(object):
         return getattr(requests, method)(**kwargs)
 
     @staticmethod
-    def display_base_request(method='get', **kwargs):
+    def display_base_request(**kwargs):
         return RackAPIBase.base_request(**kwargs)
 
     @property
@@ -149,17 +152,26 @@ class RackAPIBase(object):
         region_url = self.nextgen_endpoint_urls(region=region)[0]
         url = "{0}{1}".format(region_url, initial_url_append)
         while url:
-            print "Next url " + url
-            result = self.displable_json_auth_request(url=url)
+            result = self.displayable_json_auth_request(url=url)
             result_list.append(result)
             if result_list[-1].get('next'):
                 url = region_url + result_list[-1].get('next')
                 url = url.replace('/v2/v2', '/v2')
             else:
                 url = None
-        if data_object:
+        if isinstance(data_object, type):
             return data_object(result_list)
+        elif isinstance(self.list_object_class, type):
+            return self.list_object_class(result_list)
         else:
-            return self._list_object(result_list)
+            raise ValueError("_list_object is not a class")
 
+    @property
+    def list_object_class(self):
+        return self._list_object
 
+    @list_object_class.setter
+    def list_object_class(self, value):
+        if not issubclass(value, RestfulList):
+            raise ValueError("Class is not a type of RestfulObject: {0}".format(type(value)))
+        self._list_object = value

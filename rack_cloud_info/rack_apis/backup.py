@@ -1,14 +1,9 @@
-from __future__ import absolute_import
-
-import types
-from rack_cloud_info.rack_apis.base import RackAPIBase, RestfulList, \
-    RestfulObject
-from rack_cloud_info.rack_apis.identity import Identity
+import rack_cloud_info.rack_apis.base
 
 
-class BackupConfiguration(RestfulObject):
+class BackupConfiguration(rack_cloud_info.rack_apis.base.RestfulObject):
 
-    def populate_info(self, identity_obj, **kargs):
+    def populate_info(self, identity_obj, **kwargs):
         result = super(BackupConfiguration, self).populate_info(identity_obj, update_self=False)
         self['agent_connections'] = result
         return None
@@ -17,21 +12,20 @@ class BackupConfiguration(RestfulObject):
         result = identity_obj.service_catalog(name='cloudMonitoring')
         result = [endpoint.get('publicURL') for endpoint in result[0]['endpoints']][0]
         result += '/agents/{agentId}/connections'
-        result = result.format(agentId=self['id'])
-        print result
+        result = result.format(agentId=super()['id'])
         return result
 
 
 
-class BackupConfiguationList(RestfulList):
+class BackupConfigurationList(rack_cloud_info.rack_apis.base.RestfulList):
     _key = 'values'
     _sub_object = BackupConfiguration
 
 
-class BackupAPI(RackAPIBase):
+class BackupAPI(rack_cloud_info.rack_apis.base.RackAPIBase):
     _catalog_key = 'cloudBackup'
     _initial_url_append = '/account'
 
-    def backup_agents_list(self):
-        return self.get_list(initial_url_append='/user/agents', data_object=BackupConfiguationList)
+    def backup_agents_list(self, region=None):
+        return self.get_list(initial_url_append='/user/agents', data_object=BackupConfigurationList, region=region)
 

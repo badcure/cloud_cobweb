@@ -1,19 +1,14 @@
-from __future__ import absolute_import
+import rack_cloud_info.rack_apis.base
 
-import types
-from rack_cloud_info.rack_apis.base import RackAPIBase, RestfulList, \
-    RestfulObject
-from rack_cloud_info.rack_apis.identity import Identity
+class Monitoring(rack_cloud_info.rack_apis.base.RestfulObject):
 
-class Monitoring(RestfulObject):
-
-    def populate_info(self, identity_obj, **kargs):
+    def populate_info(self, identity_obj, **kwargs):
         super(Monitoring, self).populate_info(identity_obj, link_type='bookmark')
         return None
 
-class MonitoringAgent(RestfulObject):
+class MonitoringAgent(rack_cloud_info.rack_apis.base.RestfulObject):
 
-    def populate_info(self, identity_obj, **kargs):
+    def populate_info(self, identity_obj, **kwargs):
         result = super(MonitoringAgent, self).populate_info(identity_obj, update_self=False)
         self['agent_connections'] = result
         return None
@@ -22,23 +17,21 @@ class MonitoringAgent(RestfulObject):
         result = identity_obj.service_catalog(name='cloudMonitoring')
         result = [endpoint.get('publicURL') for endpoint in result[0]['endpoints']][0]
         result += '/agents/{agentId}/connections'
-        result = result.format(agentId=self['id'])
-        print result
+        result = result.format(agentId=super()['id'])
         return result
 
 
-
-class MonitoringList(RestfulList):
+class MonitoringList(rack_cloud_info.rack_apis.base.RestfulList):
     _key = 'values'
     _sub_object = Monitoring
 
 
-class MonitoringAgentList(RestfulList):
+class MonitoringAgentList(rack_cloud_info.rack_apis.base.RestfulList):
     _key = 'values'
     _sub_object = MonitoringAgent
 
 
-class MonitoringAPI(RackAPIBase):
+class MonitoringAPI(rack_cloud_info.rack_apis.base.RackAPIBase):
     _catalog_key = 'cloudMonitoring'
     _initial_url_append = '/account'
     _list_object = MonitoringList

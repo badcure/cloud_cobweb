@@ -1,28 +1,35 @@
-from __future__ import absolute_import
-# http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/QuickStart-000.html
-
 import copy
-import types
+import time
 import requests
-from rack_cloud_info.rack_apis.base import RackAPIBase, RestfulList, \
-    RestfulObject
+import rack_cloud_info.rack_apis.base
 
 BASE_URL = 'https://identity.api.rackspacecloud.com'
 
-class Identity(RackAPIBase):
+class Identity(rack_cloud_info.rack_apis.base.RackAPIBase):
     _username = None
     _apikey = None
     _auth = None
 
     def __init__(self, username=None, apikey=None, auth_info=None):
+        super(Identity).__init__(self)
         self._username = username
         self._apikey = apikey
         self._auth = auth_info
+        if self._auth:
+            if '_secret_username' in self._auth:
+                self._username = self._auth['_secret_username']
+                del self._auth['_secret_username']
+            if '_secret_apikey' in self._auth:
+                self._username = self._auth['_secret_apikey']
+                del self._auth['_secret_apikey']
+
 
     def authenticate(self, apikey=None):
         """
-        http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/POST_authenticate_v2.0_tokens_Token_Calls.html        """
-        payload = self.generate_apikey_auth_payload(apikey=None)
+        http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/POST_authenticate_v2.0_tokens_Token_Calls.html
+        """
+        apikey = apikey or self.apikey
+        payload = self.generate_apikey_auth_payload(apikey=apikey)
         url = "{0}/v2.0/tokens".format(BASE_URL)
         result = self.base_request(method='post', data=payload, url=url)
         result.raise_for_status()
@@ -51,12 +58,24 @@ class Identity(RackAPIBase):
         try:
             self.prepare_auth()
         except requests.HTTPError as http_exc:
-            print "Error response {status_code}: {message}".format(status_code=http_exc.response.status_code,
-                                                                   message=http_exc.response.text)
+            print("Error response {status_code}: {message}".format(status_code=http_exc.response.status_code,
+                                                                   message=http_exc.response.text))
             return None
         if self._auth:
             return self._auth['access']['token']['id']
         return None
+
+    @property
+    def username(self):
+        return self._username
+
+    @property
+    def apikey(self):
+        return self._apikey
+
+    @property
+    def auth_payload(self):
+        return self._auth
 
     def generate_apikey_auth_payload(self, apikey=None):
         result = {
@@ -68,7 +87,9 @@ class Identity(RackAPIBase):
         }
         return result
 
-    def service_catalog(self, name=None, type=None, region=None, region_specific=False):
+    def service_catalog(self, name=None, catalog_type=None, region=None, region_specific=False):
+        if region:
+            region=region.upper()
         self.prepare_auth()
         result = copy.deepcopy(self._auth['access']['serviceCatalog'])
         if name is not None:
@@ -78,10 +99,10 @@ class Identity(RackAPIBase):
                     new_result.append(service)
             result = new_result
 
-        if type is not None:
+        if catalog_type is not None:
             new_result = []
             for service in result:
-                if type == service['type']:
+                if catalog_type == service['type']:
                     new_result.append(service)
             result = new_result
 
@@ -107,14 +128,37 @@ class Identity(RackAPIBase):
         result_dict['access']['token']['id'] = '<masked>'
         return result_dict
 
+    def roles(self):
+        roles = []
+        for role in self._auth.get('access', {}).get('user', {}).get('roles', []):
+            roles.append(role)
+        return roles
 
-class User(RestfulObject):
+    def service_catalog_names(self):
+        catalog_names = []
+        for service_name in self._auth.get('access', {}).get('serviceCatalog', []):
+            catalog_names.append(service_name['name'])
+        return catalog_names
+
+    def token_expire_time(self):
+        expire_time = self._auth['access']['token']['expires']
+        if self.token:
+            return time.strptime(('.'.join(expire_time.split('.')[0:-1])+" UTC"),'%Y-%m-%dT%H:%M:%S %Z')
+        return None
+
+    def token_seconds_left(self):
+        if not self.token_expire_time():
+            return None
+        expire_in_seconds = time.mktime(self.token_expire_time())
+        return int(expire_in_seconds - time.mktime(time.gmtime()))
+
+class User(rack_cloud_info.rack_apis.base.RestfulObject):
     _key = 'user'
 
     def _fix_link_url(self, value):
         return value.replace('rackspacecloud.com/', 'rackspacecloud.com/v2/')
 
-    def populate_info(self, identity_obj, region=None, **kargs):
+    def populate_info(self, identity_obj, region=None, **kwargs):
         self._details_url = BASE_URL + "/v2.0/users/{userId}/OS-KSADM/credentials/"
         self._details_url = self._details_url.format(userId=self.root_dict['id'])
         result = super(User, self).populate_info(identity_obj, update_self=False)
@@ -133,12 +177,12 @@ class User(RestfulObject):
         return None
 
 
-class UserList(RestfulList):
+class UserList(rack_cloud_info.rack_apis.base.RestfulList):
     _key = 'users'
     _sub_object = User
 
 
-class UserAPI(RackAPIBase):
+class UserAPI(rack_cloud_info.rack_apis.base.RackAPIBase):
     _catalog_key = None
     _initial_url_append = None
 
@@ -149,8 +193,7 @@ class UserAPI(RackAPIBase):
         region_url = BASE_URL + '/v2.0/users'
         url = region_url
         while url:
-            print "Next url " + url
-            result = self.displable_json_auth_request(url=url)
+            result = self.displayable_json_auth_request(url=url)
             result_list.append(result)
             if result_list[-1].get('next'):
                 url = BASE_URL + result_list[-1].get('next')
