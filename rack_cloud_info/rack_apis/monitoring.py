@@ -3,13 +3,13 @@ import rack_cloud_info.rack_apis.base
 class Monitoring(rack_cloud_info.rack_apis.base.RestfulObject):
 
     def populate_info(self, identity_obj, **kwargs):
-        super(Monitoring, self).populate_info(identity_obj, link_type='bookmark')
+        super().populate_info(identity_obj, link_type='bookmark')
         return None
 
 class MonitoringAgent(rack_cloud_info.rack_apis.base.RestfulObject):
 
     def populate_info(self, identity_obj, **kwargs):
-        result = super(MonitoringAgent, self).populate_info(identity_obj, update_self=False)
+        result = super().populate_info(identity_obj, update_self=False)
         self['agent_connections'] = result
         return None
 

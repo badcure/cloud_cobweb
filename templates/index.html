@@ -6,6 +6,9 @@
 </head>
 <body>
 <h1>Rackspace Info</h1>
+{% if expire_time <= 0 %}
+Auth as expired
+{% else %}
 Expires in
 {% if expire_time > 7200 %}
     {{ (expire_time/3600)|int }} hour(s)
@@ -14,10 +17,13 @@ Expires in
 {% else %}
     {{ expire_time }} seconds.
 {% endif %}
+{% endif %}
 <br>
 
-See complete auth <a href="/auth_token">here</a>
-<h2>Roles</h2>
+See complete auth <a href="/auth_token">here</a><br>
+<a href="/refresh_auth">Refresh auth info</a><br>
+Documenation for Identity can be found here: <a href="http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/API_Operations.html">Identity</a>
+<h2>Roles for {{ username }}</h2>
 <ul>
     {% for role in roles %}
     <li><b>{{ role.name }}</b> - {{ role.description }}</li>
@@ -29,6 +35,11 @@ See complete auth <a href="/auth_token">here</a>
     <li>
         {% if role.name == 'cloudServersOpenStack' %}
         <a href="http://docs.rackspace.com/servers/api/v2/cs-devguide/content/ch_api_operations.html">{{ role.name }}</a>
+        {% for role in roles %}
+        {% if role.name == 'observer' %}
+        - <b>See All Server Information({{role.name}})</b>
+        {% endif %}
+        {% endfor %}
         <ul>
         {% for endpoint in role.endpoints %}
         <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/servers?region={{ endpoint.region}}">Show</a>
@@ -46,10 +57,23 @@ See complete auth <a href="/auth_token">here</a>
         <ul>
             {% for endpoint in role.endpoints %}
             <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/backups?region={{ endpoint.region}}">Show</a>
-            {% endfor %}
+                {% endfor %}
+        </ul>
+        {% elif role.name == 'cloudFeeds' %}
+        <a href="http://docs.rackspace.com/cloud-feeds/api/v1.0/feeds-devguide/content/api-operations.html">{{ role.name }}</a>
+        <ul>
+            {% for endpoint in role.endpoints %}
+            <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/feeds?region={{ endpoint.region}}">Show</a>
+                {% endfor %}
         </ul>
         {% else %}
         {{ role.name }}
+        {% for role in roles %}
+            {% if role.name == 'observer' %}
+                - <b>Read Only({{role.name}})</b>
+            {% endif %}
+        {% endfor %}
+
         <ul>
         {% for endpoint in role.endpoints %}
         <li> Region {{endpoint.region}} - {{endpoint.publicURL}}</li>

@@ -11,7 +11,7 @@ class Identity(rack_cloud_info.rack_apis.base.RackAPIBase):
     _auth = None
 
     def __init__(self, username=None, apikey=None, auth_info=None):
-        super(Identity).__init__(self)
+        super().__init__(self)
         self._username = username
         self._apikey = apikey
         self._auth = auth_info
@@ -22,7 +22,6 @@ class Identity(rack_cloud_info.rack_apis.base.RackAPIBase):
             if '_secret_apikey' in self._auth:
                 self._username = self._auth['_secret_apikey']
                 del self._auth['_secret_apikey']
-
 
     def authenticate(self, apikey=None):
         """
@@ -67,6 +66,8 @@ class Identity(rack_cloud_info.rack_apis.base.RackAPIBase):
 
     @property
     def username(self):
+        if self._auth:
+            return self._auth['access']['user']['name']
         return self._username
 
     @property
@@ -76,6 +77,16 @@ class Identity(rack_cloud_info.rack_apis.base.RackAPIBase):
     @property
     def auth_payload(self):
         return self._auth
+
+    @property
+    def tenant_id(self):
+        if isinstance(self.auth_payload, dict):
+            return self.auth_payload['access']['token']['tenant']['id']
+
+    @property
+    def tenant_name(self):
+        if isinstance(self.auth_payload, dict):
+            return self.auth_payload['access']['token']['tenant']['name']
 
     def generate_apikey_auth_payload(self, apikey=None):
         result = {
@@ -152,6 +163,17 @@ class Identity(rack_cloud_info.rack_apis.base.RackAPIBase):
         expire_in_seconds = time.mktime(self.token_expire_time())
         return int(expire_in_seconds - time.mktime(time.gmtime()))
 
+    def refresh_auth(self):
+        payload = {'auth': {
+            "tenantId": self.tenant_id,
+            "token": {
+                "id": self.token
+            }}}
+        result = self._auth_request(method='post', url=BASE_URL + "/v2.0/tokens", data=payload)
+        self._auth = result.json()
+        return self._auth
+
+
 class User(rack_cloud_info.rack_apis.base.RestfulObject):
     _key = 'user'
 
@@ -161,17 +183,17 @@ class User(rack_cloud_info.rack_apis.base.RestfulObject):
     def populate_info(self, identity_obj, region=None, **kwargs):
         self._details_url = BASE_URL + "/v2.0/users/{userId}/OS-KSADM/credentials/"
         self._details_url = self._details_url.format(userId=self.root_dict['id'])
-        result = super(User, self).populate_info(identity_obj, update_self=False)
+        result = super().populate_info(identity_obj, update_self=False)
         self['credentials'] = result
 
         self._details_url = BASE_URL + "/v2.0/users/{userId}/roles"
         self._details_url = self._details_url.format(userId=self.root_dict['id'])
-        result = super(User, self).populate_info(identity_obj, update_self=False)
+        result = super().populate_info(identity_obj, update_self=False)
         self['roles'] = result
 
         self._details_url = BASE_URL + "/v2.0/users/{userId}/RAX-AUTH/multi-factor/mobile-phones"
         self._details_url = self._details_url.format(userId=self.root_dict['id'])
-        result = super(User, self).populate_info(identity_obj, update_self=False)
+        result = super().populate_info(identity_obj, update_self=False)
         self['multi-authenticate'] = result
 
         return None

@@ -8,7 +8,7 @@ class Image(rack_cloud_info.rack_apis.base.RestfulObject):
         return value.replace('rackspacecloud.com/', 'rackspacecloud.com/v2/')
 
     def populate_info(self, identity_obj, **kwargs):
-        super(Image, self).populate_info(identity_obj, link_type='bookmark')
+        super().populate_info(identity_obj, link_type='bookmark')
         return None
 
 
@@ -19,7 +19,7 @@ class Flavor(rack_cloud_info.rack_apis.base.RestfulObject):
         return value.replace('rackspacecloud.com/', 'rackspacecloud.com/v2/')
 
     def populate_info(self, identity_obj, **kwargs):
-        super(Flavor, self).populate_info(identity_obj, link_type='bookmark')
+        super().populate_info(identity_obj, link_type='bookmark')
         return None
 
 
@@ -27,28 +27,28 @@ class Server(rack_cloud_info.rack_apis.base.RestfulObject):
     _key = 'server'
 
     def populate_info(self, identity_obj, region=None, **kwargs):
-        super(Server, self).populate_info(identity_obj)
+        super().populate_info(identity_obj)
 
         if isinstance(self.root_dict.get('image'), dict):
-            super()['image_details'] = Image(self.root_dict['image'])
+            self['image_details'] = Image(self.root_dict['image'])
 
-        super()['image_details'].populate_info(identity_obj, **kwargs)
+        self['image_details'].populate_info(identity_obj, **kwargs)
 
         if isinstance(self.root_dict.get('flavor'), dict):
-            super()['flavor_details'] = Image(self.root_dict['flavor'])
+            self['flavor_details'] = Image(self.root_dict['flavor'])
 
-        super()['flavor_details'].populate_info(identity_obj, **kwargs)
+        self['flavor_details'].populate_info(identity_obj, **kwargs)
 
         monitoring_url = identity_obj.service_catalog(name='cloudMonitoring')[0]['endpoints'][0]['publicURL']
         monitoring_url += '/views/overview?uri={uri}'.format(uri=self.link(link_type='bookmark'))
-        super()['monitoring_details'] = identity_obj.displable_json_auth_request(url=monitoring_url)
+        self['monitoring_details'] = identity_obj.displayable_json_auth_request(url=monitoring_url)
 
         backup_url = identity_obj.service_catalog(name='cloudBackup', region=region)[0]['endpoints'][0]['publicURL']
         backup_url += '/agent/server/{hostServerId}'.format(hostServerId=self.root_dict['id'])
         try:
-            super()['backup_details'] = identity_obj.displable_json_auth_request(url=backup_url)
+            self['backup_details'] = identity_obj.displayable_json_auth_request(url=backup_url)
         except requests.HTTPError as http_error:
-            super()['backup_details'] = http_error.response.url
+            self['backup_details'] = http_error.response.url
 
         return None
 

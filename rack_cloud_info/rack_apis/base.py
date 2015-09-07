@@ -46,7 +46,7 @@ class RestfulObject(dict):
     @property
     def root_dict(self):
         if isinstance(super().get(self._key), dict):
-            return super()[self._key]
+            return super().get(self._key)
 
         return super()
 
@@ -69,7 +69,7 @@ class RestfulObject(dict):
 
         # Delete everything current
         if update_self:
-            self_key_list = self.keys()
+            self_key_list = list(self.keys())
             for self_key in self_key_list:
                 del self[self_key]
             super().update(result)
@@ -81,11 +81,13 @@ class RestfulObject(dict):
             self._details_url = self._details_url or self.link(link_type='self') or self.link(link_type='bookmark')
         return self._details_url
 
+
 class RackAPIBase(object):
     _identity = None
     _catalog_key = ''
     _initial_url_append = None
     _list_object = None
+    _accept_header_json = 'application/json'
 
     def __init__(self, identity):
         from rack_cloud_info.rack_apis.identity import Identity
@@ -102,6 +104,8 @@ class RackAPIBase(object):
     def displayable_json_auth_request(self, **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
         kwargs['headers']['X-Auth-Token'] = self.token
+        if self._accept_header_json:
+            kwargs['headers']['Accept'] = self._accept_header_json
         result = self.display_base_request(**kwargs)
         json_result = dict()
         try:
@@ -121,8 +125,8 @@ class RackAPIBase(object):
 
         return json_result
 
-    @staticmethod
-    def base_request(method='get', **kwargs):
+    @classmethod
+    def base_request(cls, method='get', **kwargs):
         if isinstance(kwargs.get('data'), dict):
             kwargs['data'] = json.dumps(kwargs['data'])
             kwargs['headers'] = kwargs.get('headers', {})
@@ -130,9 +134,9 @@ class RackAPIBase(object):
 
         return getattr(requests, method)(**kwargs)
 
-    @staticmethod
-    def display_base_request(**kwargs):
-        return RackAPIBase.base_request(**kwargs)
+    @classmethod
+    def display_base_request(cls, **kwargs):
+        return cls.base_request(**kwargs)
 
     @property
     def token(self):
@@ -146,8 +150,7 @@ class RackAPIBase(object):
 
     def get_list(self, region=None, initial_url_append=None, data_object=None):
         result_list = []
-        if not initial_url_append:
-            initial_url_append = self._initial_url_append
+        initial_url_append = initial_url_append or self._initial_url_append or ''
 
         region_url = self.nextgen_endpoint_urls(region=region)[0]
         url = "{0}{1}".format(region_url, initial_url_append)
@@ -164,7 +167,7 @@ class RackAPIBase(object):
         elif isinstance(self.list_object_class, type):
             return self.list_object_class(result_list)
         else:
-            raise ValueError("_list_object is not a class")
+            return result_list
 
     @property
     def list_object_class(self):

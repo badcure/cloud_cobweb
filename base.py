@@ -1,5 +1,5 @@
 import flask
-import flask.ext
+import flask.ext.login
 import functools
 import flask_wtf
 import wtforms
@@ -12,7 +12,7 @@ class RCIJSONEncoder(flask.json.JSONEncoder):
     def default(self, o):
         if isinstance(o, Identity):
             return o.auth_payload
-        return super(RCIJSONEncoder, self).default(o)
+        return super().default(o)
 
 
 class LoginUser(Identity, flask.ext.login.UserMixin):
@@ -45,10 +45,7 @@ app.json_encoder = RCIJSONEncoder
 def login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_info' not in flask.session:
-            return flask.redirect(flask.url_for('login_fn', next=flask.request.url))
-        flask.g.user_info = Identity(auth_info=flask.session['user_info'])
-        if not flask.g.user_info.token:
+        if not isinstance(flask.g.user_info, Identity) or not flask.g.user_info.token or flask.g.user_info.token_seconds_left() <= 0:
             return flask.redirect(flask.url_for('login_fn', next=flask.request.url))
         return f(*args, **kwargs)
     return decorated_function
@@ -61,6 +58,13 @@ def user_loader(user_id):
     :param unicode user_id: user_id (email) user to retrieve
     """
     return LoginUser(user_id)
+
+@app.before_request
+def before_request(*args, **kwargs):
+    if 'user_info' in flask.session:
+        flask.g.user_info = Identity(auth_info=flask.session['user_info'])
+    else:
+        flask.g.user_info = None
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -76,8 +80,6 @@ def login_fn():
         if local_ident.token:
             flask.ext.login.login_user(local_ident)
             flask.session['user_info'] = local_ident.auth_payload
-            flask.session['user_info']['_secret_username'] = local_ident.username
-            flask.session['user_info']['_secret_apikey'] = local_ident.apikey
 
             flask.flash('Logged in successfully.')
 

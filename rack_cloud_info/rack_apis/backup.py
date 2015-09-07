@@ -4,7 +4,7 @@ import rack_cloud_info.rack_apis.base
 class BackupConfiguration(rack_cloud_info.rack_apis.base.RestfulObject):
 
     def populate_info(self, identity_obj, **kwargs):
-        result = super(BackupConfiguration, self).populate_info(identity_obj, update_self=False)
+        result = super().populate_info(identity_obj, update_self=False)
         self['agent_connections'] = result
         return None
 

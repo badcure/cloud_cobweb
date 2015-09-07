@@ -1,5 +1,7 @@
 import flask
 import flask.ext
+import rack_cloud_info.rack_apis
+import rack_cloud_info.rack_apis.feeds
 from rack_cloud_info.rack_apis.identity import UserAPI
 from rack_cloud_info.rack_apis.nextgen_servers import ServersAPI, ImagesAPI
 from rack_cloud_info.rack_apis.monitoring import MonitoringAPI
@@ -22,6 +24,20 @@ def server_list():
 
     return flask.json.jsonify(request=list_obj)
 
+@app.route('/feeds')
+@login_required
+def feed_url_list():
+    region = flask.request.args.get('region')
+    feed_type = flask.request.args.get('type')
+
+    api_type = rack_cloud_info.rack_apis.feeds.FeedsAPI
+    should_populate = flask.request.args.get('populate', False)
+    api_obj = api_type(flask.g.user_info)
+    if not feed_type:
+        list_obj = api_obj.get_list(region)
+    else:
+        list_obj = api_obj.get_feed_events(feed_type=feed_type, region=region)
+    return flask.json.jsonify(request=list_obj)
 
 @app.route('/images')
 @login_required
@@ -91,7 +107,7 @@ def refresh_auth_fn():
     # Here we use a class of some kind to represent and validate our
     # client-side form data. For example, WTForms is a library that will
     # handle this for us, and we use a custom LoginForm to validate.
-    flask.g.user_info.authenticate()
+    flask.session['user_info'] = flask.g.user_info.refresh_auth()
     return flask.redirect('/')
 
 
@@ -99,9 +115,12 @@ def refresh_auth_fn():
 @login_required
 def index():
     message = ''
-    return flask.Response(flask.render_template('index.html', message=message, roles=flask.g.user_info.roles(),
-                                                service_catalog=flask.g.user_info.service_catalog(),
-                                                expire_time=flask.g.user_info.token_seconds_left()))
+    return flask.Response(flask.render_template(
+        'index.html', message=message, roles=flask.g.user_info.roles(),
+        service_catalog=flask.g.user_info.service_catalog(), expire_time=flask.g.user_info.token_seconds_left(),
+        username=flask.g.user_info.username))
+
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0",debug=True)
