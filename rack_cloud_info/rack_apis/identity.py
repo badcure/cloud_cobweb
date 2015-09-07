@@ -1,11 +1,11 @@
 import copy
 import time
 import requests
-import rack_cloud_info.rack_apis.base
+import rack_cloud_info.rack_apis.root_apis
 
 BASE_URL = 'https://identity.api.rackspacecloud.com'
 
-class Identity(rack_cloud_info.rack_apis.base.RackAPIBase):
+class Identity(rack_cloud_info.rack_apis.root_apis.RackAPIBase):
     _username = None
     _apikey = None
     _auth = None
@@ -173,54 +173,14 @@ class Identity(rack_cloud_info.rack_apis.base.RackAPIBase):
         self._auth = result.json()
         return self._auth
 
+    def url_to_catalog_dict(self):
+        result_dict = {}
+        for service in self._auth['access']['serviceCatalog']:
+            service_name = service['name']
+            for endpoint in service['endpoints']:
+                result_dict[endpoint['publicURL']] = (service_name, endpoint.get('region','all'))
+                if service_name == 'cloudServersOpenStack':
+                    result_dict[endpoint['publicURL'].replace('/v2','')] = (service_name, endpoint.get('region','all'))
 
-class User(rack_cloud_info.rack_apis.base.RestfulObject):
-    _key = 'user'
+        return result_dict
 
-    def _fix_link_url(self, value):
-        return value.replace('rackspacecloud.com/', 'rackspacecloud.com/v2/')
-
-    def populate_info(self, identity_obj, region=None, **kwargs):
-        self._details_url = BASE_URL + "/v2.0/users/{userId}/OS-KSADM/credentials/"
-        self._details_url = self._details_url.format(userId=self.root_dict['id'])
-        result = super().populate_info(identity_obj, update_self=False)
-        self['credentials'] = result
-
-        self._details_url = BASE_URL + "/v2.0/users/{userId}/roles"
-        self._details_url = self._details_url.format(userId=self.root_dict['id'])
-        result = super().populate_info(identity_obj, update_self=False)
-        self['roles'] = result
-
-        self._details_url = BASE_URL + "/v2.0/users/{userId}/RAX-AUTH/multi-factor/mobile-phones"
-        self._details_url = self._details_url.format(userId=self.root_dict['id'])
-        result = super().populate_info(identity_obj, update_self=False)
-        self['multi-authenticate'] = result
-
-        return None
-
-
-class UserList(rack_cloud_info.rack_apis.base.RestfulList):
-    _key = 'users'
-    _sub_object = User
-
-
-class UserAPI(rack_cloud_info.rack_apis.base.RackAPIBase):
-    _catalog_key = None
-    _initial_url_append = None
-
-    _list_object = UserList
-
-    def get_list(self, **kwargs):
-        result_list = []
-        region_url = BASE_URL + '/v2.0/users'
-        url = region_url
-        while url:
-            result = self.displayable_json_auth_request(url=url)
-            result_list.append(result)
-            if result_list[-1].get('next'):
-                url = BASE_URL + result_list[-1].get('next')
-                url = url.replace('/v2/v2', '/v2')
-            else:
-                url = None
-
-        return self._list_object(result_list)

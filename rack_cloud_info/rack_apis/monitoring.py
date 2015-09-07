@@ -29,12 +29,3 @@ class MonitoringList(rack_cloud_info.rack_apis.base.RestfulList):
 class MonitoringAgentList(rack_cloud_info.rack_apis.base.RestfulList):
     _key = 'values'
     _sub_object = MonitoringAgent
-
-
-class MonitoringAPI(rack_cloud_info.rack_apis.base.RackAPIBase):
-    _catalog_key = 'cloudMonitoring'
-    _initial_url_append = '/account'
-    _list_object = MonitoringList
-
-    def monitoring_agent_list(self):
-        return self.get_list(initial_url_append='/agents', data_object=MonitoringAgentList)

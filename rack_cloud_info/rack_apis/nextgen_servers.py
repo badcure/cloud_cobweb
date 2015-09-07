@@ -70,14 +70,3 @@ class ImagesList(rack_cloud_info.rack_apis.base.RestfulList):
     _key = 'images'
     _sub_object = Image
 
-
-class ServersAPI(rack_cloud_info.rack_apis.base.RackAPIBase):
-    _catalog_key = 'cloudServersOpenStack'
-    _initial_url_append = '/servers'
-    _list_object = ServersList
-
-
-class ImagesAPI(rack_cloud_info.rack_apis.base.RackAPIBase):
-    _catalog_key = 'cloudImages'
-    _initial_url_append = '/images'
-    _list_object = ImagesList

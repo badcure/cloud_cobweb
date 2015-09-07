@@ -5,18 +5,25 @@ import flask_wtf
 import wtforms
 import pprint
 from rack_cloud_info.rack_apis.identity import Identity
+import rack_cloud_info.rack_apis.root_apis
 from requests.packages import urllib3
 urllib3.disable_warnings()
 
-def display_json(**kwargs):
-    for mime_type, priority in flask.request.accept_mimetypes:
-        if mime_type == 'text/html':
-            return flask.Response(flask.render_template('json_template.html',
-                                                        json_result = kwargs['response']))
-        elif mime_type == 'application/json' or mime_type == '*/*':
-            return flask.Response(response=kwargs['response'], mimetype='application/json')
+def display_json(response, template_kwargs=None, **kwargs):
+    if not template_kwargs:
+        template_kwargs = dict()
+    try:
+        if isinstance(response[-1], rack_cloud_info.rack_apis.root_apis.RackAPIResult):
+            for mime_type, priority in flask.request.accept_mimetypes:
+                if mime_type == 'text/html':
+                    return flask.Response(flask.render_template('json_template.html', json_result=response,
+                                                                **template_kwargs))
+                elif mime_type == 'application/json' or mime_type == '*/*':
+                    return flask.Response(response=response, mimetype='application/json')
+    except IndexError:
+        pass
 
-    return flask.jsonify(**kwargs)
+    return flask.jsonify(response, **kwargs)
 
 class RCIJSONEncoder(flask.json.JSONEncoder):
     def default(self, o):

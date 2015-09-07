@@ -1,62 +1,11 @@
 import flask
 import flask.ext
 import rack_cloud_info.rack_apis
-import rack_cloud_info.rack_apis.base
-import rack_cloud_info.rack_apis.feeds
-from rack_cloud_info.rack_apis.nextgen_servers import ServersAPI, ImagesAPI
-from rack_cloud_info.rack_apis.monitoring import MonitoringAPI
-from rack_cloud_info.rack_apis.backup import BackupAPI
+import rack_cloud_info.rack_apis.root_apis
 from base import app, login_required, display_json
 
 from requests.packages import urllib3
 urllib3.disable_warnings()
-
-
-@app.route('/cloudServersOpenStack')
-@login_required
-def server_list():
-    api_type = ServersAPI
-    region = flask.request.args.get('region')
-    api_obj = api_type(flask.g.user_info)
-    list_obj = api_obj.get_list(region)
-    return display_json(response=list_obj)
-
-
-@app.route('/cloudFeeds')
-@login_required
-def feed_url_list():
-    region = flask.request.args.get('region')
-    feed_type = flask.request.args.get('type')
-
-    api_type = rack_cloud_info.rack_apis.feeds.FeedsAPI
-    api_obj = api_type(flask.g.user_info)
-    if not feed_type:
-        list_obj = api_obj.get_list(region)
-    else:
-        list_obj = api_obj.get_feed_events(feed_type=feed_type, region=region)
-    return display_json(response=list_obj)
-
-
-@app.route('/cloudImages')
-@login_required
-def image_list():
-    list_obj = ImagesAPI
-    region = flask.request.args.get('region')
-    images = list_obj(flask.g.user_info).get_list(region)
-
-    return display_json(response=images)
-
-
-@app.route('/cloudMonitoring/all')
-@app.route('/cloudMonitoring/all/')
-@app.route('/cloudMonitoring/all/<path:new_path>')
-@login_required
-def monitoring_list(new_path='views/overview'):
-    list_obj = MonitoringAPI(flask.g.user_info)
-
-    result_list =list_obj.get_list(initial_url_append='/'+new_path)
-
-    return display_json(response=result_list)
 
 
 @app.route('/<string:servicename>/<string:region>')
@@ -64,12 +13,33 @@ def monitoring_list(new_path='views/overview'):
 @app.route('/<string:servicename>/<string:region>/<path:new_path>')
 @login_required
 def service_catalog_list(servicename,region,new_path=''):
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
+    list_obj = rack_cloud_info.rack_apis.root_apis.get_catalog_api(servicename)(flask.g.user_info)
     list_obj._catalog_key = servicename
 
-    result_list = list_obj.get_list(region=region, initial_url_append='/' + new_path)
+    result = dict()
+    result['response']=list_obj.get_list(region=region, initial_url_append='/' + new_path)
 
-    return display_json(response=result_list)
+    path_list = new_path.split('/')
+    path_list.reverse()
+    kwargs = dict()
+    main_resource = path_list.pop()
+    if path_list and main_resource == 'servers':
+        if path_list and '-' in path_list[-1]:
+            kwargs['server_id'] = path_list.pop()
+            if 'server' in result['response'][0]['result']:
+                kwargs['flavor_id'] = result['response'][0]['result']['server']['flavor']['id']
+                kwargs['image_id'] = result['response'][0]['result']['server']['image']['id']
+    elif path_list and main_resource == 'entities':
+        if path_list and path_list[-1]:
+            kwargs['entity_id'] = path_list.pop()
+        if len(path_list) >= 2 and path_list[-1] == 'checks':
+            path_list.pop()
+            kwargs['check_id'] = path_list.pop()
+
+
+    result['template_kwargs'] = list_obj.pprint_html_url_results(region=region, **kwargs)
+
+    return display_json(**result)
 
 
 @app.route('/auth_token')
