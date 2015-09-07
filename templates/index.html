@@ -33,40 +33,6 @@ Documenation for Identity can be found here: <a href="http://docs.rackspace.com/
 <ul>
     {% for role in service_catalog %}
     <li>
-        {% if role.name == 'cloudServersOpenStack' %}
-        <a href="http://docs.rackspace.com/servers/api/v2/cs-devguide/content/ch_api_operations.html">{{ role.name }}</a>
-        {% for role in roles %}
-        {% if role.name == 'observer' %}
-        - <b>See All Server Information({{role.name}})</b>
-        {% endif %}
-        {% endfor %}
-        <ul>
-        {% for endpoint in role.endpoints %}
-            <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
-        {% endfor %}
-        </ul>
-        {% elif role.name == 'cloudMonitoring' %}
-        <a href="http://docs.rackspace.com/cm/api/v1.0/cm-devguide/content/service-api-operations.html">{{ role.name }}</a>
-        <ul>
-            {% for endpoint in role.endpoints %}
-            <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/all">Show</a>
-            {% endfor %}
-        </ul>
-        {% elif role.name == 'cloudBackup' %}
-        <a href="http://docs.rackspace.com/rcbu/api/v1.0/rcbu-devguide/content/operations.html">{{ role.name }}</a>
-        <ul>
-            {% for endpoint in role.endpoints %}
-            <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
-                {% endfor %}
-        </ul>
-        {% elif role.name == 'cloudFeeds' %}
-        <a href="http://docs.rackspace.com/cloud-feeds/api/v1.0/feeds-devguide/content/api-operations.html">{{ role.name }}</a>
-        <ul>
-            {% for endpoint in role.endpoints %}
-            <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
-                {% endfor %}
-        </ul>
-        {% else %}
         {{ role.name }}
         {% for role in roles %}
             {% if role.name == 'observer' %}
@@ -75,10 +41,14 @@ Documenation for Identity can be found here: <a href="http://docs.rackspace.com/
         {% endfor %}<br>
         <ul>
             {% for endpoint in role.endpoints %}
-            <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
-                {% endfor %}
+                {% if endpoint.region %}
+                <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
+                {% else %}
+                <li> Region global - {{endpoint.publicURL}} - <a href="/{{role.name}}/all">Show</a>
+
+                {% endif %}
+            {% endfor %}
         </ul>
-        {% endif %}
     </li>
     {% endfor %}
 </ul>
