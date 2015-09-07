@@ -24,7 +24,6 @@ class RackAPIBase(object):
             raise ValueError("Identity object required")
         self._identity = identity
 
-
     def _auth_request(self, **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
         kwargs['headers']['X-Auth-Token'] = self.token
@@ -131,15 +130,16 @@ class RackAPIBase(object):
 
     def pprint_html_url_results(self, **kwargs):
         result = self.filled_out_urls(**kwargs)
+        url_list_to_replace = list(self._identity.url_to_catalog_dict().items()) + list(self.custom_urls())
         for index, url in enumerate(result['links']['populated']):
-            for replace_url, replace_url_info in self._identity.url_to_catalog_dict().items():
+            for replace_url, replace_url_info in url_list_to_replace:
                 if replace_url in url and '_UNDEFINED' not in url:
                     new_regex = "^({0})([^']*)".format(replace_url)
                     match_url = re.compile(new_regex)
                     result['links']['populated'][index] = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), url)
 
         for index, url in enumerate(result['links']['rel']):
-            for replace_url, replace_url_info in self._identity.url_to_catalog_dict().items():
+            for replace_url, replace_url_info in url_list_to_replace:
                 if replace_url in url and url.index(replace_url) == 0:
                     new_regex = "^({0})([^']*)".format(replace_url)
                     match_url = re.compile(new_regex)
@@ -158,20 +158,21 @@ class RackAPIBase(object):
                        if '{'+kwarg_id+'}' in possible_url:
                            tmp_url = (tmp_url or possible_url).replace('{'+kwarg_id+'}', '')
                     if tmp_url and '{' not in tmp_url:
-                        print(possible_class)
                         if possible_class.only_region == 'all':
                             region = None
                         elif possible_class.only_region:
                             region = possible_class.only_region
                         base_url = self._identity.service_catalog(name=possible_class._catalog_key, region=region)[0]['endpoints'][0]['publicURL']
                         result_list.append(base_url + possible_url)
-                        print(result_list[-1])
 
         return result_list
 
+    def custom_urls(self, **kwargs):
+        return []
 
 class RackAPIResult(dict):
     _identity_obj = None
+    additional_url_list = []
 
     def __init__(self, result, request_headers=None, response_headers=None, url=None, status_code=None,
                  identity_obj=None, **kwargs):
@@ -210,6 +211,11 @@ class RackAPIResult(dict):
         for url, url_info in self._identity_obj.url_to_catalog_dict().items():
             match_url = re.compile("'({0})([^']*)'".format(url))
             result = match_url.sub(r"'<a href='/{0}/{1}\2'>\1\2</a>'".format(*url_info), result)
+
+        for url, url_info in self.additional_url_list:
+            match_url = re.compile("'({0})([^']*)'".format(url))
+            result = match_url.sub(r"'<a href='/{0}/{1}\2'>\1\2</a>'".format(*url_info), result)
+
         return result
 
 
@@ -247,6 +253,10 @@ class ServersAPI(RackAPIBase):
 class FeedsAPI(RackAPIBase):
     _catalog_key = 'cloudFeeds'
     _accept_header_json = 'application/vnd.rackspace.atom+json'
+    feed_list_payload = dict()
+    feed_region = 'all'
+    feed_task = None
+
 
     def get_feed_events(self, feed_type, region):
         list_obj = self.get_list(region)
@@ -254,6 +264,26 @@ class FeedsAPI(RackAPIBase):
             if 'collection' in feed_info and feed_info['collection']['title'] == feed_type:
                 return [self.displayable_json_auth_request(url=feed_info['collection']['href'])]
         return None
+
+    def custom_urls(self, **kwargs):
+        url_list = list()
+        for feed_entry in self.feed_list_payload.get('service', {}).get('workspace', []):
+            if 'collection' not in feed_entry:
+                continue
+            title = feed_entry['title']
+            url = feed_entry['collection']['href']
+            url_list.append((url, ('cloudFeeds', '{0}/{1}'.format(self.feed_region, title))))
+
+        return url_list
+
+    def public_endpoint_urls(self, region=None, version=None):
+        if not self.feed_task:
+            return super().public_endpoint_urls(region, version)
+        for feed_entry in self.feed_list_payload.get('service', {}).get('workspace', []):
+            if feed_entry['title'] == self.feed_task:
+                return [feed_entry['collection']['href']]
+        return None
+
 
 
 class BackupAPI(RackAPIBase):
@@ -325,6 +355,7 @@ class MonitoringAPI(RackAPIBase):
 
 
         return url_list
+
 
 class OrchastrationAPI(RackAPIBase):
     _catalog_key = 'cloudOrchestration'
@@ -416,6 +447,7 @@ class CloudImages(RackAPIBase):
         url_list.append('/schemas/task')
 
         return url_list
+
 
 class CloudServersFirstGenAPI(RackAPIBase):
     _catalog_key = 'cloudServers'

@@ -7,6 +7,32 @@ from base import app, login_required, display_json
 from requests.packages import urllib3
 urllib3.disable_warnings()
 
+@app.route('/cloudFeeds/<string:region>/<string:title>')
+@app.route('/cloudFeeds/<string:region>/<string:title>/')
+@app.route('/cloudFeeds/<string:region>/<string:title>/<path:new_path>')
+def cloudfeeds_list(region, title, new_path=''):
+    list_obj = rack_cloud_info.rack_apis.root_apis.get_catalog_api('cloudFeeds')(flask.g.user_info)
+    list_obj.feed_region = region
+    list_obj.feed_task = title
+    query_args = ''
+    for key, value in flask.request.args.items():
+        query_args += '&{0}={1}'.format(key, value)
+    if query_args:
+        query_args = '?'+ query_args[1:]
+    new_path += query_args
+
+    if 'cloudFeeds_'+region not in flask.session:
+        result = list_obj.get_list(region=region, initial_url_append='/')[0]
+        flask.session['cloudFeeds_'+region] = result['result']
+    list_obj.feed_list_payload = flask.session['cloudFeeds_'+region]
+
+    result = dict()
+    kwargs = dict()
+    result['response']=list_obj.get_list(region=region, initial_url_append='/' + new_path)
+    result['response'][0].additional_url_list = list_obj.custom_urls()
+    result['template_kwargs'] = list_obj.pprint_html_url_results(region=region, **kwargs)
+
+    return display_json(**result)
 
 @app.route('/<string:servicename>/<string:region>')
 @app.route('/<string:servicename>/<string:region>/')
@@ -14,7 +40,6 @@ urllib3.disable_warnings()
 @login_required
 def service_catalog_list(servicename,region,new_path=''):
     list_obj = rack_cloud_info.rack_apis.root_apis.get_catalog_api(servicename)(flask.g.user_info)
-    list_obj._catalog_key = servicename
     query_args = ''
     for key, value in flask.request.args.items():
         query_args += '&{0}={1}'.format(key, value)
@@ -44,7 +69,12 @@ def service_catalog_list(servicename,region,new_path=''):
         if len(path_list) >= 2 and path_list[-1] == 'checks':
             path_list.pop()
             kwargs['check_id'] = path_list.pop()
+    elif servicename == 'cloudFeeds':
+        flask.session['cloudFeeds_'+region] = result['response'][0]['result']
+        list_obj.feed_region = region
 
+        list_obj.feed_list_payload = flask.session['cloudFeeds_'+region]
+        result['response'][0].additional_url_list = list_obj.custom_urls()
 
     result['template_kwargs'] = list_obj.pprint_html_url_results(region=region, **kwargs)
 
