@@ -47,191 +47,27 @@ def image_list():
     return display_json(response=images)
 
 
-@app.route('/cloudMonitoring')
+@app.route('/cloudMonitoring/all')
+@app.route('/cloudMonitoring/all/')
+@app.route('/cloudMonitoring/all/<path:new_path>')
 @login_required
-def monitoring_list():
+def monitoring_list(new_path='views/overview'):
     list_obj = MonitoringAPI(flask.g.user_info)
 
-    result_list =list_obj.get_list(initial_url_append='/views/overview')
+    result_list =list_obj.get_list(initial_url_append='/'+new_path)
 
     return display_json(response=result_list)
 
 
-@app.route('/cloudBackup')
+@app.route('/<string:servicename>/<string:region>')
+@app.route('/<string:servicename>/<string:region>/')
+@app.route('/<string:servicename>/<string:region>/<path:new_path>')
 @login_required
-def backups_list():
-    list_obj = BackupAPI(flask.g.user_info)
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.backup_agents_list(region=region)
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudBlockStorage')
-@login_required
-def cloudBlockStorage_list():
+def service_catalog_list(servicename,region,new_path=''):
     list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudBlockStorage'
-    region = flask.request.args.get('region')
+    list_obj._catalog_key = servicename
 
-    result_list = list_obj.get_list(region=region)
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudQueues')
-@login_required
-def cloudQueues_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudQueues'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region)
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudBigData')
-@login_required
-def cloudBigData_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudBigData'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region, initial_url_append='/stacks')
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudOrchestration')
-@login_required
-def cloudOrchestration_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudOrchestration'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region, initial_url_append='/stacks')
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudDatabases')
-@login_required
-def cloudDatabases_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudDatabases'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region, initial_url_append='/instances')
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudNetworks')
-@login_required
-def cloudNetworks_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudNetworks'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region, initial_url_append='/')
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudMetrics')
-@login_required
-def cloudMetrics_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudMetrics'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region, initial_url_append='/metrics/search')
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudLoadBalancers')
-@login_required
-def cloudLoadBalancers_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudLoadBalancers'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region)
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudSites')
-@login_required
-def cloudSites_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudSites'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region, initial_url_append='/')
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudDNS')
-@login_required
-def cloudDNS_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudDNS'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region)
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudServers')
-@login_required
-def cloudServers_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudServers'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region)
-
-    return display_json(response=result_list)
-
-
-@app.route('/rackCDN')
-@login_required
-def rackCDN_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'rackCDN'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region)
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudFilesCDN')
-@login_required
-def cloudFilesCDN_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudFilesCDN'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region)
-
-    return display_json(response=result_list)
-
-
-@app.route('/cloudFiles')
-@login_required
-def cloudFiles_list():
-    list_obj = rack_cloud_info.rack_apis.base.RackAPIBase(flask.g.user_info)
-    list_obj._catalog_key = 'cloudFiles'
-    region = flask.request.args.get('region')
-
-    result_list = list_obj.get_list(region=region)
+    result_list = list_obj.get_list(region=region, initial_url_append='/' + new_path)
 
     return display_json(response=result_list)
 
