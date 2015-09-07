@@ -75,6 +75,9 @@ def service_catalog_list(servicename,region,new_path=''):
 
         list_obj.feed_list_payload = flask.session['cloudFeeds_'+region]
         result['response'][0].additional_url_list = list_obj.custom_urls()
+    elif servicename == 'cloudBackup':
+        if main_resource == 'backup-configuration' and path_list[-1] == 'system':
+            kwargs['machine_agent_id'] = path_list[-2]
 
     result['template_kwargs'] = list_obj.pprint_html_url_results(region=region, **kwargs)
 

@@ -100,17 +100,26 @@ class RackAPIBase(object):
     def available_urls(cls):
         return []
 
+    @classmethod
+    def complete_urls(cls):
+        url_list = list()
+        return url_list
+
     def related_urls(self):
         url_list = list()
         return url_list
 
-    def filled_out_urls(self, region=None, **kwargs):
+    def filled_out_urls(self, **kwargs):
+        region = kwargs.get('region')
         for kwarg_name in self._url_kwarg_list:
             kwargs[kwarg_name] = kwargs.get(kwarg_name, 'KEY_{0}_UNDEFINED'.format(kwarg_name))
 
         url_list = self.available_urls()
         for index, url in enumerate(url_list):
             url_list[index] = self.public_endpoint_urls(region=region)[0] + url.format(**kwargs)
+
+        for index, url in enumerate(self.complete_urls()):
+            url_list.append(url.format(**kwargs))
 
         rel_url_list = self.get_relation_urls(region=region)
         for index, url in enumerate(rel_url_list):
@@ -144,6 +153,10 @@ class RackAPIBase(object):
                     new_regex = "^({0})([^']*)".format(replace_url)
                     match_url = re.compile(new_regex)
                     result['links']['rel'][index] = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), url)
+                elif url.index('/') == 0:
+                    result['links']['rel'][index] = "<a href='{0}'>{0}</a>".format(url)
+
+
         return result
 
     def get_relation_urls(self, region=None):
@@ -164,6 +177,18 @@ class RackAPIBase(object):
                             region = possible_class.only_region
                         base_url = self._identity.service_catalog(name=possible_class._catalog_key, region=region)[0]['endpoints'][0]['publicURL']
                         result_list.append(base_url + possible_url)
+
+                for possible_url in possible_class.complete_urls():
+                    tmp_url = None
+                    for kwarg_id in common_ids:
+                        if '{'+kwarg_id+'}' in possible_url:
+                            tmp_url = (tmp_url or possible_url).replace('{'+kwarg_id+'}', '')
+                    if tmp_url and '{' not in tmp_url:
+                        if possible_class.only_region == 'all':
+                            region = None
+                        elif possible_class.only_region:
+                            region = possible_class.only_region
+                        result_list.append(possible_url)
 
         return result_list
 
@@ -252,6 +277,7 @@ class ServersAPI(RackAPIBase):
 
 class FeedsAPI(RackAPIBase):
     _catalog_key = 'cloudFeeds'
+    _url_kwarg_list = ('server_id', 'entity_id', 'user_id', 'container_name', 'machine_agent_id', 'username')
     _accept_header_json = 'application/vnd.rackspace.atom+json'
     feed_list_payload = dict()
     feed_region = 'all'
@@ -283,6 +309,24 @@ class FeedsAPI(RackAPIBase):
             if feed_entry['title'] == self.feed_task:
                 return [feed_entry['collection']['href']]
         return None
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/cloudFeeds/DFW/nova_events/?search=(AND(cat=rid:{server_id}))')
+        return url_list
+
+    @classmethod
+    def complete_urls(cls):
+        url_list = list()
+        url_list.append('/cloudFeeds/DFW/nova_events/?search=(AND(cat=rid:{server_id}))')
+        url_list.append('/cloudFeeds/DFW/monitoring_events/?search=(AND(cat=rid:{entity_id}))')
+        url_list.append('/cloudFeeds/DFW/identity_events/?search=(AND(cat=rid:{user_id}))')
+        url_list.append('/cloudFeeds/DFW/identity_events/?search=(AND(cat=tid:{container_name}))')
+        url_list.append('/cloudFeeds/DFW/backup_events/?search=(AND(cat=rid:{machine_agent_id}))')
+        url_list.append('/cloudFeeds/DFW/feedsaccess_events/?search=(AND(cat=tid:{username}))')
+
+        return url_list
 
 
 
