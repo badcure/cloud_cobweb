@@ -16,6 +16,7 @@ class RackAPIBase(object):
     _list_object = None
     _accept_header_json = 'application/json'
     _url_kwarg_list = list()
+    only_region = None
 
     def __init__(self, identity):
         from rack_cloud_info.rack_apis.identity import Identity
@@ -96,7 +97,8 @@ class RackAPIBase(object):
             raise ValueError("Class is not a type of RestfulObject: {0}".format(type(value)))
         self._list_object = value
 
-    def available_urls(self):
+    @classmethod
+    def available_urls(cls):
         return []
 
     def related_urls(self):
@@ -105,15 +107,15 @@ class RackAPIBase(object):
 
     def filled_out_urls(self, region=None, **kwargs):
         for kwarg_name in self._url_kwarg_list:
-            kwargs[kwarg_name] = kwargs.get(kwarg_name, 'UNKNOWN_{0}'.format(kwarg_name))
+            kwargs[kwarg_name] = kwargs.get(kwarg_name, 'KEY_{0}_UNDEFINED'.format(kwarg_name))
 
         url_list = self.available_urls()
         for index, url in enumerate(url_list):
             url_list[index] = self.public_endpoint_urls(region=region)[0] + url.format(**kwargs)
 
-        rel_url_list = self.related_urls()
+        rel_url_list = self.get_relation_urls(region=region)
         for index, url in enumerate(rel_url_list):
-            rel_url_list[index] = self.public_endpoint_urls(region=region)[0] + url.format(**kwargs)
+            rel_url_list[index] = url.format(**kwargs)
 
         result = {'links': {'populated': [], 'rel': []}}
         for index, url in enumerate(url_list):
@@ -121,7 +123,7 @@ class RackAPIBase(object):
 
         result['links']['populated'].sort()
         for index, url in enumerate(rel_url_list):
-            if 'UNKNOWN_' not in url:
+            if '_UNDEFINED' not in url:
                 result['links']['rel'].append(url)
         result['links']['rel'].sort()
 
@@ -129,15 +131,43 @@ class RackAPIBase(object):
 
     def pprint_html_url_results(self, **kwargs):
         result = self.filled_out_urls(**kwargs)
+        for index, url in enumerate(result['links']['populated']):
+            for replace_url, replace_url_info in self._identity.url_to_catalog_dict().items():
+                if replace_url in url and '_UNDEFINED' not in url:
+                    new_regex = "^({0})([^']*)".format(replace_url)
+                    match_url = re.compile(new_regex)
+                    result['links']['populated'][index] = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), url)
 
-        for type, url_list in result['links'].items():
-            for index, url in enumerate(url_list):
-                for replace_url, replace_url_info in self._identity.url_to_catalog_dict().items():
-                    if replace_url in url and 'UNKNOWN_' not in url:
-                        new_regex = "({0})([^']*)".format(replace_url)
-                        match_url = re.compile(new_regex)
-                        result['links'][type][index] = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), url)
+        for index, url in enumerate(result['links']['rel']):
+            for replace_url, replace_url_info in self._identity.url_to_catalog_dict().items():
+                if replace_url in url and url.index(replace_url) == 0:
+                    new_regex = "^({0})([^']*)".format(replace_url)
+                    match_url = re.compile(new_regex)
+                    result['links']['rel'][index] = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), url)
         return result
+
+    def get_relation_urls(self, region=None):
+        result_list = list()
+
+        for possible_class in RackAPIBase.__subclasses__():
+            common_ids = set(possible_class._url_kwarg_list) & set(self._url_kwarg_list)
+            if common_ids and possible_class != self.__class__:
+                for possible_url in possible_class.available_urls():
+                    tmp_url = None
+                    for kwarg_id in common_ids:
+                       if '{'+kwarg_id+'}' in possible_url:
+                           tmp_url = (tmp_url or possible_url).replace('{'+kwarg_id+'}', '')
+                    if tmp_url and '{' not in tmp_url:
+                        print(possible_class)
+                        if possible_class.only_region == 'all':
+                            region = None
+                        elif possible_class.only_region:
+                            region = possible_class.only_region
+                        base_url = self._identity.service_catalog(name=possible_class._catalog_key, region=region)[0]['endpoints'][0]['publicURL']
+                        result_list.append(base_url + possible_url)
+                        print(result_list[-1])
+
+        return result_list
 
 
 class RackAPIResult(dict):
@@ -182,18 +212,14 @@ class RackAPIResult(dict):
             result = match_url.sub(r"'<a href='/{0}/{1}\2'>\1\2</a>'".format(*url_info), result)
         return result
 
-    def filled_out_urls(self, region=None, **kwargs):
-        for kwarg_name in self._url_kwarg_list:
-            kwargs[kwarg_name] = kwargs.get(kwarg_name, 'UNKNOWN_{0}'.format(kwarg_name))
-
-        return self.filled_out_urls(region, **kwargs)
-
-
 
 class ServersAPI(RackAPIBase):
     _catalog_key = 'cloudServersOpenStack'
+    _url_kwarg_list = ('server_id', 'flavor_id', 'attachment_id', 'image_id', 'metadata_key', 'server_uri',
+                       'flavor_class', 'server_request_id')
 
-    def available_urls(self):
+    @classmethod
+    def available_urls(cls):
         url_list = list()
         url_list.append('/servers')
         url_list.append('/servers/detail')
@@ -210,8 +236,11 @@ class ServersAPI(RackAPIBase):
         url_list.append('/images/{image_id}')
         url_list.append('/servers/{server_id}/metadata')
         url_list.append('/servers/{server_id}/metadata/{metadata_key}')
-        url_list.append('/flavors')
-        url_list.append('/flavors')
+        url_list.append('/limits')
+        url_list.append('/flavors/{flavor_class}/os-extra_specs')
+        url_list.append('/servers/{server_id}/os-instance-actions')
+        url_list.append('/servers/{server_id}/os-instance-actions/{server_request_id}')
+        url_list.append('/os-networksv2')
         return url_list
 
 
@@ -229,14 +258,37 @@ class FeedsAPI(RackAPIBase):
 
 class BackupAPI(RackAPIBase):
     _catalog_key = 'cloudBackup'
+    _url_kwarg_list = ('server_id', 'agent_id', 'restore_id', 'machine_agent_id', 'backup_configuration_id', 'backup_id')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/agent/{machine_agent_id}')
+        url_list.append('/agent/server/{server_id}')
+        url_list.append('/user/agents')
+        url_list.append('/backup-configuration')
+        url_list.append('/backup-configuration/{backup_configuration_id}')
+        url_list.append('/backup-configuration/system/{machine_agent_id}')
+        url_list.append('/backup/{backup_id}')
+        url_list.append('/backup/completed/{backup_configuration_id}')
+        url_list.append('/backup/report/{backup_id}')
+        url_list.append('/restore/files/{restore_id}')
+        url_list.append('/backup/availableforrestore')
+        url_list.append('/restore/{restore_id}')
+        url_list.append('/restore/report/{restore_id}')
+        url_list.append('/system/activity/{agent_id}')
+        url_list.append('/activity')
+        return url_list
 
 
 class MonitoringAPI(RackAPIBase):
     _catalog_key = 'cloudMonitoring'
+    only_region = 'all'
     _url_kwarg_list = ('entity_id', 'check_id', 'metric_name', 'check_type_id', 'monitoring_zone_id', 'alarm_id',
-                       'notification_plan_id', 'notification_id', 'alarm_example_id', 'suppession_id')
+                       'notification_plan_id', 'notification_id', 'alarm_example_id', 'suppession_id', 'server_uri')
 
-    def available_urls(self):
+    @classmethod
+    def available_urls(cls):
         url_list = list()
         url_list.append('/limits')
         url_list.append('/account')
@@ -263,6 +315,8 @@ class MonitoringAPI(RackAPIBase):
         url_list.append('/notifications/{notification_id}')
         url_list.append('/notification_types')
         url_list.append('/views/overview')
+        url_list.append('/views/overview?entity={entity_id}')
+        url_list.append('/views/overview?uri={server_uri}')
         url_list.append('/changelogs/alarms')
         url_list.append('/alarm_examples')
         url_list.append('/alarm_examples/{alarm_example_id}')
@@ -271,6 +325,124 @@ class MonitoringAPI(RackAPIBase):
 
 
         return url_list
+
+class OrchastrationAPI(RackAPIBase):
+    _catalog_key = 'cloudOrchestration'
+    _url_kwarg_list = ('stack_name', 'stack_id', 'resource_name', 'event_id', 'type_name')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/stacks​')
+        url_list.append('/stacks/{stack_name}')
+        url_list.append('/stacks/{stack_name}/{stack_id}')
+        url_list.append('/stacks/{stack_name}/resources')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources​')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{resource_name}')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{resource_name}/metadata')
+        url_list.append('/resource_types')
+        url_list.append('/resource_types/{type_name}')
+        url_list.append('/resource_types/{type_name}/template')
+        url_list.append('/stacks/{stack_name}/events')
+        url_list.append('/stacks/{stack_name}/{stack_id}/events')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{resource_name}/events​')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{resource_name}/events/{event_id}')
+        url_list.append('/build_info')
+
+
+        return url_list
+
+
+class CloudFilesAPI(RackAPIBase):
+    _catalog_key = 'cloudFiles'
+    _url_kwarg_list = ('container_name', 'object')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/​')
+        url_list.append('/{container_name}')
+        url_list.append('/{container_name}/{object}')
+        return url_list
+
+
+class CloudFilesCDNAPI(RackAPIBase):
+    _catalog_key = 'cloudFilesCDN'
+    _url_kwarg_list = ()
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/​')
+        return url_list
+
+
+class RackspaceCDNAPI(RackAPIBase):
+    _catalog_key = 'rackCDN'
+    _url_kwarg_list = ('flavor_id',)
+    only_region = 'DFW'
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/')
+        url_list.append('/ping')
+        url_list.append('/health')
+        url_list.append('/services')
+        url_list.append('/flavors/{flavor_id}')
+
+        return url_list
+
+
+class CloudImages(RackAPIBase):
+    _catalog_key = 'cloudImages'
+    _url_kwarg_list = ('image_id', 'member_id', 'task_id')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/')
+        url_list.append('/images')
+        url_list.append('/images/{image_id}')
+        url_list.append('/images/{image_id}/members')
+        url_list.append('/images/{image_id}/members/{member_id}')
+        url_list.append('/tasks')
+        url_list.append('/tasks/{task_id}')
+        url_list.append('/schemas/images')
+        url_list.append('/schemas/image')
+        url_list.append('/schemas/members')
+        url_list.append('/schemas/member')
+        url_list.append('/schemas/tasks')
+        url_list.append('/schemas/task')
+
+        return url_list
+
+class CloudServersFirstGenAPI(RackAPIBase):
+    _catalog_key = 'cloudServers'
+    _url_kwarg_list = ('firstgen_id', 'firstgen_image_id', 'firstgen_ip_group_id')
+    only_region = 'all'
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/')
+        url_list.append('/servers')
+        url_list.append('/servers/detail')
+        url_list.append('/servers/{firstgen_id}')
+        url_list.append('/servers/{firstgen_id}/ips')
+        url_list.append('/servers/{firstgen_id}/ips/public')
+        url_list.append('/servers/{firstgen_id}/ips/private')
+        url_list.append('/flavors')
+        url_list.append('/flavors/detail')
+        url_list.append('/images')
+        url_list.append('/images/detail')
+        url_list.append('/images/{firstgen_image_id}')
+        url_list.append('/servers/{firstgen_id}/backup_schedule')
+        url_list.append('/shared_ip_groups')
+        url_list.append('/shared_ip_groups/detail')
+        url_list.append('/shared_ip_groups/{firstgen_ip_group_id}')
+
+        return url_list
+
 
 
 def get_catalog_api(catalog_key):

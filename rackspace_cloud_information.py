@@ -15,8 +15,14 @@ urllib3.disable_warnings()
 def service_catalog_list(servicename,region,new_path=''):
     list_obj = rack_cloud_info.rack_apis.root_apis.get_catalog_api(servicename)(flask.g.user_info)
     list_obj._catalog_key = servicename
+    query_args = ''
+    for key, value in flask.request.args.items():
+        query_args += '&{0}={1}'.format(key, value)
+    if query_args:
+        query_args = '?'+ query_args[1:]
 
     result = dict()
+    new_path += query_args
     result['response']=list_obj.get_list(region=region, initial_url_append='/' + new_path)
 
     path_list = new_path.split('/')
@@ -29,6 +35,9 @@ def service_catalog_list(servicename,region,new_path=''):
             if 'server' in result['response'][0]['result']:
                 kwargs['flavor_id'] = result['response'][0]['result']['server']['flavor']['id']
                 kwargs['image_id'] = result['response'][0]['result']['server']['image']['id']
+                for link in result['response'][0]['result']['server']['links']:
+                    if link['rel'] == 'bookmark':
+                        kwargs['server_uri'] = link['href']
     elif path_list and main_resource == 'entities':
         if path_list and path_list[-1]:
             kwargs['entity_id'] = path_list.pop()
