@@ -3,10 +3,20 @@ import flask.ext.login
 import functools
 import flask_wtf
 import wtforms
+import pprint
 from rack_cloud_info.rack_apis.identity import Identity
 from requests.packages import urllib3
 urllib3.disable_warnings()
 
+def display_json(**kwargs):
+    for mime_type, priority in flask.request.accept_mimetypes:
+        if mime_type == 'text/html':
+            return flask.Response(flask.render_template('json_template.html',
+                                                        json_result = kwargs['response']))
+        elif mime_type == 'application/json' or mime_type == '*/*':
+            return flask.Response(response=kwargs['response'], mimetype='application/json')
+
+    return flask.jsonify(**kwargs)
 
 class RCIJSONEncoder(flask.json.JSONEncoder):
     def default(self, o):
@@ -42,6 +52,11 @@ login_manager.init_app(app)
 app.json_encoder = RCIJSONEncoder
 
 
+@app.template_filter('pprint_obj')
+def pprint_obj(obj):
+    return pprint.pformat(obj)
+
+
 def login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
@@ -67,6 +82,11 @@ def before_request(*args, **kwargs):
         flask.g.user_info = None
 
 
+@app.after_request
+def after_request(response):
+    return response
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login_fn():
     # Here we use a class of some kind to represent and validate our
@@ -89,6 +109,7 @@ def login_fn():
             flask.flash('Invalid login.')
 
     return flask.render_template('login.html', form=form, logged_in=False)
+
 
 
 @app.route('/logout', methods=['GET'])

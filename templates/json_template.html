@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block main_body %}
+{% for x in json_result %}
+<h1>Request</h1>
+<div class="json_display"><pre id="request_code">{{ x.request|pprint_obj }}</pre></div>
+<h1>Response</h1>
+<div class="json_display"><pre id="response_code">{{ x.response|pprint_obj }}</pre></div>
+<h1>Data</h1>
+<div class="json_display"><pre id="display_code">{{ x.result|pprint_obj }}</pre></div>
+{% endfor %}
+{% endblock %}

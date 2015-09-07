@@ -109,19 +109,23 @@ class RackAPIBase(object):
         result = self.display_base_request(**kwargs)
         json_result = dict()
         try:
-            json_result.update(result.json())
+            json_result['result'] = result.json()
         except ValueError:
             json_result['result'] = result.text
 
-        json_result['_cloud_info_request'] = {}
-        json_result['_cloud_info_request']['url'] = result.request.url
-        json_result['_cloud_info_request']['method'] = result.request.method
-        json_result['_cloud_info_request']['headers'] = dict(result.request.headers)
+        json_result['request'] = {}
+        json_result['request']['url'] = result.request.url
+        json_result['request']['method'] = result.request.method
+        json_result['request']['headers'] = dict(result.request.headers)
         for header_name in MASK_HEADERS:
-            if header_name in json_result['_cloud_info_request']['headers']:
-                json_result['_cloud_info_request']['headers'][header_name] = '<masked>'
-        json_result['_cloud_info_response'] = dict()
-        json_result['_cloud_info_response']['status_code'] = result.status_code
+            if header_name in json_result['request']['headers']:
+                json_result['request']['headers'][header_name] = '<masked>'
+        json_result['response'] = dict()
+        json_result['response']['status_code'] = result.status_code
+        json_result['response']['headers'] = dict(**result.headers)
+        for header_name in MASK_HEADERS:
+            if header_name in json_result['response']:
+                json_result['response']['headers'][header_name] = '<masked>'
 
         return json_result
 
