@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% if json_result.status_code < 299 %}
+    {% set header_class="status_code_ok" %}
+{% elif json_result.status_code < 399 %}
+    {% set header_class="status_code_redirect" %}
+{% elif json_result.status_code < 499 %}
+    {% set header_class="status_code_bad_request" %}
+{% elif json_result.status_code < 599 %}
+    {% set header_class="status_code_server_error" %}
+{% else %}
+    {% set header_class="status_code_unknown" %}
+{% endif %}
+
+{% if json_result.response_time < 500 %}
+    {% set response_status_class="response_time_great" %}
+{% elif json_result.response_time < 1000 %}
+    {% set response_status_class="response_time_good" %}
+{% elif json_result.response_time < 5000 %}
+    {% set response_status_class="response_time_ok" %}
+{% else %}
+    {% set response_status_class="response_time_bad" %}
+{% endif %}
+
+
+{% block header_body %}
+    <div id="url_information" class="{{ url_status_class }}">
+        <span class="request_url_header">URL:</span> {{ json_result.url }}<br>
+
+        <div class="status_code">
+            <span class="request_url_status_code">Status Code: {{ json_result.status_code }}</span>
+        </div>
+        <div class="response_time">
+            <span class="request_url_response_time">Response Time</span>:
+            <span class="{{ response_status_class }}">{{ (json_result.response_time*1000)|int }} ms</span>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block main_body %}
+<h1>Request</h1>
+<div class="json_display"><pre id="request_code">{{ json_result.request_headers|pprint_obj }}</pre></div>
+<h1>Response</h1>
+<div class="json_display"><pre id="response_code">{{ json_result.response_headers|pprint_obj }}</pre></div>
+<h1>Data</h1>
+<div class="json_display"><pre id="display_code">{{ json_result.pprint_html_result|safe }}</pre></div>
+{% endblock %}
+
+
+{% block bottom_body %}
+<div class="more_urls">
+    <div class="populated_urls">
+        <ul>
+            {% for url in links.populated %}
+            <li>{{ url|safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    Related
+    <div class="rel_urls">
+        <ul>
+            {% for url in links.rel %}
+            <li>{{ url|safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,20 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-</head>
-<body>
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<ul class=flashes>
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
-{% endwith %}
+{% extends 'base.html' %}
 
+{% block main_body %}
 {% if logged_in %}
 You are logged in, <a href="/logout">logout here.</a>
 {% else %}
@@ -28,5 +14,4 @@ You are logged in, <a href="/logout">logout here.</a>
     <input type="submit" name="Login">
 {% endif %}
 </form>
-</body>
-</html>
+{% endblock %}

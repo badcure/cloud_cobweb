@@ -1,23 +1,31 @@
+import functools
+import pprint
+
 import flask
 import flask.ext.login
-import functools
 import flask_wtf
 import wtforms
-import pprint
-from rack_cloud_info.rack_apis.identity import Identity
-import rack_cloud_info.rack_apis.root_apis
 from requests.packages import urllib3
+import sugarcoat.rackspace_api.identity
+import sugarcoat.rackspace_api.root_apis
+import sugarcoat.rackspace_api.base
+
+
 urllib3.disable_warnings()
 
-def display_json(response, template_kwargs=None, **kwargs):
+def display_json(response, template_kwargs=None, additional_urls=None, **kwargs):
     if not template_kwargs:
         template_kwargs = dict()
+    if not additional_urls:
+        additional_urls = list()
+
     try:
-        if isinstance(response[-1], rack_cloud_info.rack_apis.root_apis.RackAPIResult):
+        if isinstance(response, sugarcoat.rackspace_api.base.RackAPIResult):
             for mime_type, priority in flask.request.accept_mimetypes:
                 if mime_type == 'text/html':
-                    return flask.Response(flask.render_template('json_template.html', json_result=response,
-                                                                **template_kwargs))
+                    return flask.Response(flask.render_template(
+                        'json_template.html', json_result=response, additional_urls=additional_urls,
+                        **template_kwargs))
                 elif mime_type == 'application/json' or mime_type == '*/*':
                     return flask.Response(response=response, mimetype='application/json')
     except IndexError:
@@ -27,12 +35,12 @@ def display_json(response, template_kwargs=None, **kwargs):
 
 class RCIJSONEncoder(flask.json.JSONEncoder):
     def default(self, o):
-        if isinstance(o, Identity):
+        if isinstance(o, sugarcoat.rackspace_api.identity.Identity):
             return o.auth_payload
         return super().default(o)
 
 
-class LoginUser(Identity, flask.ext.login.UserMixin):
+class LoginUser(sugarcoat.rackspace_api.identity.Identity, flask.ext.login.UserMixin):
 
     def is_authenticated(self):
         return bool(self.token)
@@ -67,7 +75,7 @@ def pprint_obj(obj):
 def login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        if not isinstance(flask.g.user_info, Identity) or not flask.g.user_info.token or flask.g.user_info.token_seconds_left() <= 0:
+        if not isinstance(flask.g.user_info, sugarcoat.rackspace_api.identity.Identity) or not flask.g.user_info.token or flask.g.user_info.token_seconds_left() <= 0:
             return flask.redirect(flask.url_for('login_fn', next=flask.request.url))
         return f(*args, **kwargs)
     return decorated_function
@@ -84,7 +92,7 @@ def user_loader(user_id):
 @app.before_request
 def before_request(*args, **kwargs):
     if 'user_info' in flask.session:
-        flask.g.user_info = Identity(auth_info=flask.session['user_info'])
+        flask.g.user_info = sugarcoat.rackspace_api.identity.Identity(auth_info=flask.session['user_info'])
     else:
         flask.g.user_info = None
 

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="/static/rci.css">
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+</head>
+<body>
+
+<div id="header" class="{{ header_class }}">
+    {% block header_body %}{% endblock %}
+</div>
+<div id="left">
+    {% block left_body %}{% endblock %}
+</div>
+<div id="right">
+    {% block right_body %}{% endblock %}
+</div>
+<div id="middle">
+    {% block flash_messages %}
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class=flashes>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    {% endblock %}
+
+    {% block main_body %}{% endblock %}
+</div>
+<div id="bottom">
+    {% block bottom_body %}{% endblock %}
+</div>
+</body>
+</html>

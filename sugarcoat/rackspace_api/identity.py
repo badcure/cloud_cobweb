@@ -1,11 +1,13 @@
 import copy
 import time
+
 import requests
-import rack_cloud_info.rack_apis.root_apis
+import sugarcoat.rackspace_api.base
+
 
 BASE_URL = 'https://identity.api.rackspacecloud.com'
 
-class Identity(rack_cloud_info.rack_apis.root_apis.RackAPIBase):
+class Identity(sugarcoat.rackspace_api.base.RackAPI):
     _username = None
     _apikey = None
     _auth = None
@@ -174,13 +176,12 @@ class Identity(rack_cloud_info.rack_apis.root_apis.RackAPIBase):
         return self._auth
 
     def url_to_catalog_dict(self):
-        result_dict = {}
+        result_list = []
         for service in self._auth['access']['serviceCatalog']:
             service_name = service['name']
             for endpoint in service['endpoints']:
-                result_dict[endpoint['publicURL']] = (service_name, endpoint.get('region','all'))
-                if service_name == 'cloudServersOpenStack':
-                    result_dict[endpoint['publicURL'].replace('/v2','')] = (service_name, endpoint.get('region','all'))
+                result_list.append((endpoint['publicURL'], (service_name, endpoint.get('region','all'))))
+                result_list.append(('/'.join(endpoint['publicURL'].split('/')[0:3]), (service_name, endpoint.get('region','all'), '__root__')))
 
-        return result_dict
+        return sorted(result_list, key=lambda key_pair: (len(key_pair[1])*100+len(key_pair[0])))
 

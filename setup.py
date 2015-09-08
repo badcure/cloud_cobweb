@@ -22,15 +22,14 @@ with open('VERSION') as f:
     version = f.read().strip()
 
 setup(
-    name='rack_cloud_info',
+    name='sugarcoat',
     version=version,
-    description='Rackspace Cloud Information',
-    long_description='Rackspace Cloud Information - Connecting the different '
-                     'services',
+    description='Sugarcoat',
+    long_description='Easier to consume APIs.',
     author='Brian Price',
     author_email='brian.price@badcure.com',
-    url='https://github.rackspace.com/badcure/rackspace_cloud_information/',
-    packages=['rack_cloud_info'],
+    url='https://github.com/badcure/sugarcoat/',
+    packages=['sugarcoat'],
     include_package_data=True,
     zip_safe=False,
     install_requires=required,

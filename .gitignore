@@ -56,4 +56,4 @@ docs/_build/
 # PyBuilder
 target/
 .idea
-rackspace_cloud_information.iml
+sugarcoat.iml
