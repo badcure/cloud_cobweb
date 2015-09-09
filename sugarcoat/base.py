@@ -11,26 +11,36 @@ MASK_HEADERS = ('X-Auth-Token',)
 class APIResult(dict):
     _identity_obj = None
     additional_url_list = []
+    result_type = 'Unknown'
+    safe_html = None
+    relation_urls = None
 
     def __init__(self, result, request_headers=None, response_headers=None, url=None, status_code=None,
                  identity_obj=None, **kwargs):
         super().__init__(**kwargs)
+        self.relation_urls = list()
         self._identity_obj = identity_obj
+        if isinstance(result, requests.HTTPError):
+            result = result.response
+
         if isinstance(result, requests.Response):
             try:
                 self['result'] = result.json()
+                self.result_type = 'JSON - '
+                if isinstance(self['result'], str):
+                    self.result_type += 'String'
+                elif isinstance(self['result'], dict):
+                    self.result_type += 'Dictionary'
+                elif isinstance(self['result'], list):
+                    self.result_type += 'List'
+                else:
+                    self.result_type += 'Unknown'
+                self.safe_html = True
             except ValueError:
                 self['result'] = result.text
-
-            url = result.request.url
-            status_code = result.status_code
-            request_headers = dict(**result.request.headers)
-            response_headers = dict(**result.headers)
-        elif isinstance(result, requests.HTTPError):
-            try:
-                self['result'] = result.json()
-            except ValueError:
-                self['result'] = result.text
+                self.result_type = 'Unknown(String)'
+                if not self['result']:
+                    self.result_type = 'No Result'
 
             url = result.request.url
             status_code = result.status_code
@@ -44,6 +54,7 @@ class APIResult(dict):
             status_code = -1
         else:
             self['result'] = result
+            status_code = -2
 
         self['request_headers'] = request_headers
         self['response_headers'] = response_headers
@@ -56,13 +67,13 @@ class APIResult(dict):
             if header_name in self['response_headers']:
                 self['response_headers'][header_name] = '<masked>'
 
-    def pre_html_result(self, result):
-        return result
-
     @property
     def pprint_html_result(self):
-        result = self.pre_html_result(self['result'])
-        result = str(pprint.pformat(result))
+
+        result = self.pre_html_result
+
+        if not isinstance(result, str):
+            result = str(pprint.pformat(result))
         if not self._identity_obj:
             return result
 
@@ -72,18 +83,44 @@ class APIResult(dict):
                 result = match_url.sub(r"<a href='/{0}/{1}/{2}\2'>\1\2</a>".format(*replace_url_info), result)
             else:
                 result = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), result)
-            match_url = re.compile("'([^']+)@@{0}([^']*)'".format(url))
-            if len(replace_url_info) == 3:
-                result = match_url.sub(r"<a href='/{0}/{1}/{2}\2'>\1</a>".format(*replace_url_info), result)
-            else:
-                result = match_url.sub(r"'<a href='/{0}/{1}\2'>\1</a>'".format(*replace_url_info), result)
-
-        match_url = re.compile("'([^']+)@@([^']*)'")
-        result = match_url.sub(r"'<a href='\2'>\1</a>'", result)
-
 
         return result
 
+    @property
+    def pre_html_result(self):
+        result = self['result']
+
+        if isinstance(result, dict):
+            result['_sugarcoat_relations'] = self.get_sorted_relations()
+
+        return result
+
+    def add_relation(self, url, region=None, resource_id=None, resource_name=None, resource_type=None):
+        new_url = dict(href=url, rel='rel')
+        if region and region.lower() != 'all':
+            new_url['region'] = region
+        if resource_id:
+            new_url['resource_id'] = resource_id
+        if resource_name:
+            new_url['resource_name'] = resource_name
+        if resource_type:
+            new_url['resource_type'] = resource_type
+
+        new_url['href'] = new_url['href'].format(**new_url)
+        self.relation_urls.append(new_url)
+
+    def get_sorted_relations(self):
+        result = dict()
+        for url_info in self.relation_urls:
+            resource_type = url_info.get('resource_type', 'unknown_resource')
+            resource_name = url_info.get('resource_name', 'unknown_resource')
+
+            result[resource_type] = result.get(resource_type, dict())
+            result[resource_type][resource_name] = result[resource_type].get(resource_name, list())
+            result[resource_type][resource_name].append(url_info)
+
+
+        return result
 
 class APIBase(object):
     _identity = None
@@ -173,20 +210,20 @@ class APIBase(object):
         for index, url in enumerate(rel_url_list):
             rel_url_list[index] = url.format(**kwargs)
 
-        result = {'links': {'populated': [], 'rel': []}}
+        populate = list()
         for index, url in enumerate(url_list):
-            result['links']['populated'].append(url)
+            populate.append(url)
+        populate.sort()
 
-        result['links']['populated'].sort()
+        related = list()
         for index, url in enumerate(rel_url_list):
             if '_UNDEFINED' not in url:
-                result['links']['rel'].append(url)
-        result['links']['rel'].sort()
+                related.append(url)
 
-        return copy.deepcopy(result)
+        return {'populated': populate, 'rel': related}
 
-    def pprint_html_url_results(self, **kwargs):
-        result = self.filled_out_urls(**kwargs)
+    def pprint_html_url_results(self, api_result=None, **kwargs):
+        result = {'links': self.filled_out_urls(**kwargs)}
         url_list_to_replace = self._identity.url_to_catalog_dict() + list(self.custom_urls())
         for index, url in enumerate(result['links']['populated']):
             for replace_url, replace_url_info in url_list_to_replace:
@@ -204,12 +241,12 @@ class APIBase(object):
                     new_regex = "^({0})([^']*)".format(replace_url)
                     match_url = re.compile(new_regex)
                     if len(replace_url_info) == 3:
-                        result['links']['rel'][index] = match_url.sub(r"<a href='/{0}/{1}/{2}\2'>\1\2</a>".format(*replace_url_info), url)
+                        api_result.add_relation(match_url.sub(r"<a href='/{0}/{1}/{2}\2'>\1\2</a>".format(*replace_url_info), url))
                     else:
-                        result['links']['rel'][index] = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), url)
+                        api_result.add_relation(match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), url))
                 elif url.index('/') == 0:
-                    result['links']['rel'][index] = "<a href='{0}'>{0}</a>".format(url)
-
+                    api_result.add_relation("<a href='{0}'>{0}</a>".format(url))
+        del result['links']['rel']
 
         return result
 
@@ -231,18 +268,20 @@ class APIBase(object):
                         continue
 
                     if '{' not in tmp_url:
-                        if possible_class.only_region == 'all':
+                        if possible_class.only_region is None:
+                            tmp_region = None
+                        elif possible_class.only_region.lower() == 'all':
                             tmp_region = None
                         elif possible_class.only_region:
                             tmp_region = possible_class.only_region
                         else:
                             tmp_region = region
-                        base_url = self._identity.service_catalog(name=possible_class.catalog_key, region=tmp_region)[0]['endpoints'][0]['publicURL']
+                        base_url = self._identity.service_catalog(name=possible_class.catalog_key, region=tmp_region)
+                        base_url = base_url[0]['endpoints']
+                        base_url = base_url[0]['publicURL']
                         if '__root__' in possible_url:
                             base_url = '/'.join(base_url.split('/')[0:3])
                             possible_url = possible_url.replace('/__root__', '')
-                        print(base_url)
-                        print(possible_url)
 
                         result_list.append(base_url + possible_url)
 

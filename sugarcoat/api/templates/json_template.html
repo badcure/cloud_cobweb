@@ -42,8 +42,12 @@
 <div class="json_display"><pre id="request_code">{{ json_result.request_headers|pprint_obj }}</pre></div>
 <h1>Response</h1>
 <div class="json_display"><pre id="response_code">{{ json_result.response_headers|pprint_obj }}</pre></div>
-<h1>Data</h1>
-<div class="json_display"><pre id="display_code">{{ json_result.pprint_html_result|safe }}</pre></div>
+<h1>Data - {{ json_result.result_type }}</h1>
+    {% if json_result.safe_html %}
+        <div class="json_display"><pre id="display_code">{{ json_result.pprint_html_result|safe }}</pre></div>
+    {% else %}
+        <div class="json_display"><pre id="display_code">{{ json_result.pprint_html_result }}</pre></div>
+    {% endif %}
 {% endblock %}
 
 

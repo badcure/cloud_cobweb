@@ -18,20 +18,18 @@ def service_catalog_list(servicename,region,new_path=''):
     list_obj = sugarcoat.rackspace_api.root_apis.get_catalog_api(servicename)(flask.g.user_info)
     query_args = ''
     new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
+
     for key, value in flask.request.args.items():
         query_args += '&{0}={1}'.format(key, value)
     if query_args:
         query_args = '?'+ query_args[1:]
-
-    result = dict()
     new_path += query_args
-    result['response']=list_obj.get_api_resource(region=region, initial_url_append='/' + new_path)
+    response = list_obj.get_api_resource(region=region, initial_url_append='/' + new_path)
+    kwargs = list_obj.kwargs_from_request(url=new_path, api_result=response['result'], region=region)
+    tenant_id = flask.g.user_info.tenant_id
+    template_kwargs = list_obj.pprint_html_url_results(region=region, tenant_id=tenant_id, api_result=response, **kwargs)
 
-    kwargs = list_obj.kwargs_from_request(url=new_path, api_result=result['response']['result'], region=region)
-    kwargs['tenant_id'] = flask.g.user_info.tenant_id
-    result['template_kwargs'] = list_obj.pprint_html_url_results(region=region, **kwargs)
-
-    return display_json(**result)
+    return display_json(response=response, tenant_id=tenant_id, template_kwargs=template_kwargs)
 
 
 @app.route('/auth_token')
@@ -53,6 +51,7 @@ def refresh_auth_fn():
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
+    print(app.jinja_env.globals)
     message = ''
     return flask.Response(flask.render_template(
         'index.html', message=message, roles=flask.g.user_info.roles(),

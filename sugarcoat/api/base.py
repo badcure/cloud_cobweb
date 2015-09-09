@@ -9,6 +9,7 @@ from requests.packages import urllib3
 import sugarcoat.rackspace_api.identity
 import sugarcoat.rackspace_api.root_apis
 import sugarcoat.rackspace_api.base
+import re
 
 
 urllib3.disable_warnings()
@@ -24,10 +25,9 @@ def display_json(response, template_kwargs=None, additional_urls=None, **kwargs)
             for mime_type, priority in flask.request.accept_mimetypes:
                 if mime_type == 'text/html':
                     return flask.Response(flask.render_template(
-                        'json_template.html', json_result=response, additional_urls=additional_urls,
-                        **template_kwargs))
+                            'json_template.html', json_result=response, additional_urls=additional_urls, **template_kwargs))
                 elif mime_type == 'application/json' or mime_type == '*/*':
-                    return flask.Response(response=response, mimetype='application/json')
+                    return flask.jsonify(response, **kwargs)
     except IndexError:
         pass
 
@@ -71,6 +71,22 @@ app.json_encoder = RCIJSONEncoder
 def pprint_obj(obj):
     return pprint.pformat(obj)
 
+@app.template_filter('convert_to_urls')
+def convert_to_urls(result):
+    print(flask.g.user_info)
+    if not isinstance(result, str):
+        result = str(pprint.pformat(result))
+    if not flask.g.user_info:
+        return result
+
+    for url, replace_url_info in flask.g.user_info.url_to_catalog_dict():
+        match_url = re.compile("'({0})([^']*)'".format(url))
+        if len(replace_url_info) == 3:
+            result = match_url.sub(r"<a href='/{0}/{1}/{2}\2'>\1\2</a>".format(*replace_url_info), result)
+        else:
+            result = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), result)
+
+    return pprint.pformat(result)
 
 def login_required(f):
     @functools.wraps(f)

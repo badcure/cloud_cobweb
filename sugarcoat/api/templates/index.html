@@ -1,62 +1,55 @@
 {% extends 'base.html' %}
 
-{% block main_body %}
-<div id="auth_info">
+{% set header_class="auth_header" %}
 
-    <h1>Auth</h1>
+{% block header_body %}
+    <span class="auth_expiretime">Expires in :</span>
     {% if expire_time <= 0 %}
     Auth as expired
     {% else %}
-    Expires in
-    {% if expire_time > 7200 %}
-    {{ (expire_time/3600)|int }} hour(s)
-    {% elif expire_time > 60 %}
-    {{ (expire_time/60)|int }} minute(s)
-    {% else %}
-    {{ expire_time }} seconds.
-    {% endif %}
+        {% if expire_time > 7200 %}
+            {{ (expire_time/3600)|int }} hour(s)
+        {% elif expire_time > 60 %}
+            {{ (expire_time/60)|int }} minute(s)
+        {% else %}
+            {{ expire_time }} seconds.
+        {% endif %}
     {% endif %}
     <br>
 
-    See complete auth <a href="/auth_token">here</a><br>
-    <a href="/refresh_auth">Refresh auth info</a><br>
-    Documenation for Identity can be found here: <a href="http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/API_Operations.html">Identity</a>
-    <div id="auth_roles">
-        <h2>Roles for {{ username }}</h2>
+    <div class="auth_token">
+        See complete auth <a href="/auth_token">here</a><br>
+    </div>
+    <div class="refresh_token">
+        <a href="/refresh_auth">Refresh auth info</a><br>
+    </div>
+{% endblock %}
+
+
+{% block main_body %}
+    {{ 'tes'|convert_to_urls }}
+    <div id="complete_service_catalog">
+        <h2>Service Catalog</h2>
         <ul>
-            {% for role in roles %}
-            <li><b>{{ role.name }}</b> - {{ role.description }}</li>
+            {% for role in service_catalog %}
+            <div id="catalog_{{role.name}}">
+                <li>
+                    {{ role.name }}
+                    <ul>
+                        {% for endpoint in role.endpoints %}
+                        {% if endpoint.region %}
+                        <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
+                            {% else %}
+                        <li> Region global - {{endpoint.publicURL}} - <a href="/{{role.name}}/all">Show</a>
+
+                            {% endif %}
+                            {% endfor %}
+                    </ul>
+                </li>
+            </div>
             {% endfor %}
         </ul>
     </div>
-</div>
-<div id="complete_service_catalog">
-    <h2>Service Catalog</h2>
-    <ul>
-        {% for role in service_catalog %}
-        <div id="catalog_{{role.name}}">
-            <li>
-                {{ role.name }}
-                {% for role in roles %}
-                {% if role.name == 'observer' %}
-                - <b>Read Only({{role.name}})</b>
-                {% endif %}
-                {% endfor %}<br>
-                <ul>
-                    {% for endpoint in role.endpoints %}
-                    {% if endpoint.region %}
-                    <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
-                        {% else %}
-                    <li> Region global - {{endpoint.publicURL}} - <a href="/{{role.name}}/all">Show</a>
-
-                        {% endif %}
-                        {% endfor %}
-                </ul>
-            </li>
-        </div>
-        {% endfor %}
-    </ul>
-</div>
 
 {% endblock %}
 
