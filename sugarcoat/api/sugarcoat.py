@@ -33,6 +33,8 @@ def service_catalog_list(servicename,region,new_path=''):
     template_kwargs['region'] = region
     template_kwargs['tenant_id'] = flask.g.user_info.tenant_id
 
+    if 'region' in kwargs:
+        del kwargs['region']
     return sugarcoat.api.filters.display_json(response=flask.g.api_response, new_path=new_path, tenant_id=tenant_id, template_kwargs=template_kwargs, region=region, **kwargs)
 
 

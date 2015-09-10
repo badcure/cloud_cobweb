@@ -117,9 +117,10 @@ class APIResult(dict):
         rel_urls = api_base_obj.get_relation_urls()
         url_kwargs = self.get_resources()
         url_kwargs['tenant_id'] = tenant_id
-
         for index, url_info in enumerate(rel_urls):
             url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or region
+            print(url_info)
+            print(url_kwargs)
 
             try:
                 url = url_info[0].format(**url_kwargs)
@@ -236,6 +237,7 @@ class APIBase(object):
             base_url = '/' + rel_class.catalog_key + '/{region}'
             orig_common_ids = set(rel_class.url_kwarg_list) & set(self.url_kwarg_list)
             for possible_url in rel_class.available_urls():
+                print(possible_url)
                 for kwarg_id in orig_common_ids:
                     if '{'+kwarg_id+'}' in possible_url:
                         result_list.append((base_url + possible_url,rel_class,orig_common_ids))

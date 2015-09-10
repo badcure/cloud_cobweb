@@ -16,21 +16,33 @@ class MonitoringResult(sugarcoat.rackspace_api.base.RackAPIResult):
                     result['entity_id'] = monitor_obj['entity']['id']
                     result['server_uri'] = monitor_obj['entity']['uri']
                     result['entity_id'] = monitor_obj['entity']['id']
+        elif 'uri' in self['result']:
+            result['server_uri'] = self['result']['uri']
+            result['entity_id'] = self['result']['id']
 
         return result
 
 
 class LoadBalancerResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
-    def pre_html_result(self):
-        split_url = self['url'].split('?')[0].split('/')
-        if not split_url[-1]:
-            split_url.pop()
+    pass
+class BackupResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
-        if 'loadbalancers' == split_url[-1].lower():
-            for index, entry in enumerate(self['result'].get('loadBalancers', [])):
-                self['result']['loadBalancers'][index]['id'] = '{0}@@{1}/{0}'.format(entry['id'], self['url'])
-        return self['result']
+    def get_resources(self):
+        result = dict()
+        if isinstance(self['result'], list):
+            for entry in self['result']:
+                if 'HostServerId' in entry:
+                    result['server_id'] = entry['HostServerId']
+                if 'MachineAgentId' in entry:
+                    result['machine_agent_id'] = entry['MachineAgentId']
+                if 'SourceMachineAgentId' in entry:
+                    result['machine_agent_id'] = entry['SourceMachineAgentId']
+                if 'SourceMachineAgentId' in entry:
+                    result['machine_agent_id'] = entry['SourceMachineAgentId']
+
+
+        return result
 
 
 class ServerResult(sugarcoat.rackspace_api.base.RackAPIResult):
@@ -120,7 +132,8 @@ class FeedsAPI(sugarcoat.rackspace_api.base.RackAPI):
 
 class BackupAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudBackup'
-    url_kwarg_list = ('server_id', 'agent_id', 'restore_id', 'machine_agent_id', 'backup_configuration_id', 'backup_id')
+    url_kwarg_list = ('server_id', 'restore_id', 'machine_agent_id', 'backup_configuration_id', 'backup_id')
+    result_class = BackupResult
 
     @classmethod
     def available_urls(cls):
@@ -138,22 +151,9 @@ class BackupAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list.append('/backup/availableforrestore')
         url_list.append('/restore/{restore_id}')
         url_list.append('/restore/report/{restore_id}')
-        url_list.append('/system/activity/{agent_id}')
+        url_list.append('/system/activity/{machine_agent_id}')
         url_list.append('/activity')
         return url_list
-
-    @classmethod
-    def kwargs_from_request(cls, url, api_result,  **kwargs):
-        result = super().kwargs_from_request(url, api_result, **kwargs)
-
-        path_list = url.split('/')
-        path_list.reverse()
-        current_step = path_list.pop()
-
-        if current_step == 'backup-configuration' and path_list and path_list[-1] == 'system':
-            result['machine_agent_id'] = path_list[-2]
-
-        return result
 
 
 class MonitoringAPI(sugarcoat.rackspace_api.base.RackAPI):

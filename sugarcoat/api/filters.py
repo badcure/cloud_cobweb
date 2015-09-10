@@ -63,7 +63,7 @@ def display_json(response, new_path, region, template_kwargs=None, additional_ur
             for mime_type, priority in flask.request.accept_mimetypes:
                 if mime_type == 'text/html':
                     return flask.Response(flask.render_template(
-                        'json_template.html', json_result=response, additional_urls=convert_to_related(new_path=new_path, region=region, **kwargs), **template_kwargs))
+                        'json_template.html', json_result=response, additional_urls=convert_to_related(new_path=new_path, region=region, api_result=response, **kwargs), **template_kwargs))
                 elif mime_type == 'application/json' or mime_type == '*/*':
                     return flask.jsonify(response, **kwargs)
     except IndexError:
@@ -71,9 +71,11 @@ def display_json(response, new_path, region, template_kwargs=None, additional_ur
 
     return flask.jsonify(response, **kwargs)
 
-def convert_to_related(new_path, region, **kwargs):
-    url_var = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'], region=region)
-    result = {'links': flask.g.list_obj.filled_out_urls(region=region, tenant_id=flask.g.user_info.tenant_id, **url_var)}
+def convert_to_related(new_path, region, api_result, **kwargs):
+    resource_kwargs = api_result.get_resources()
+    if 'region' not in resource_kwargs:
+        resource_kwargs['region'] = region
+    result = {'links': flask.g.list_obj.filled_out_urls(tenant_id=flask.g.user_info.tenant_id, **resource_kwargs)}
     url_list_to_replace = flask.g.list_obj._identity.url_to_catalog_dict()
     for index, url in enumerate(result['links']['populated']):
         for replace_url, replace_url_info in url_list_to_replace:
