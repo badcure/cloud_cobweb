@@ -183,5 +183,5 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
                 result_list.append((endpoint['publicURL'], (service_name, endpoint.get('region','all'))))
                 result_list.append(('/'.join(endpoint['publicURL'].split('/')[0:3]), (service_name, endpoint.get('region','all'), '__root__')))
 
-        return sorted(result_list, key=lambda key_pair: (len(key_pair[1])*100+len(key_pair[0])))
+        return sorted(result_list, key=lambda key_pair: -(len(key_pair[1])*100+len(key_pair[0])))
 

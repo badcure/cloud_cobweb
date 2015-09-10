@@ -2,8 +2,6 @@ import copy
 import requests
 import time
 import json
-import re
-import pprint
 
 MASK_HEADERS = ('X-Auth-Token',)
 
@@ -67,32 +65,11 @@ class APIResult(dict):
             if header_name in self['response_headers']:
                 self['response_headers'][header_name] = '<masked>'
 
-    @property
-    def pprint_html_result(self):
-
-        result = self.pre_html_result
-
-        if not isinstance(result, str):
-            result = str(pprint.pformat(result))
-        if not self._identity_obj:
-            return result
-
-        for url, replace_url_info in self._identity_obj.url_to_catalog_dict() + self.additional_url_list:
-            match_url = re.compile("'({0})([^']*)'".format(url))
-            if len(replace_url_info) == 3:
-                result = match_url.sub(r"<a href='/{0}/{1}/{2}\2'>\1\2</a>".format(*replace_url_info), result)
-            else:
-                result = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), result)
-
-        return result
-
-    @property
     def pre_html_result(self):
         result = self['result']
 
         if isinstance(result, dict):
             result['_sugarcoat_relations'] = self.get_sorted_relations()
-
         return result
 
     def add_relation(self, url, region=None, resource_id=None, resource_name=None, resource_type=None):
@@ -107,20 +84,55 @@ class APIResult(dict):
             new_url['resource_type'] = resource_type
 
         new_url['href'] = new_url['href'].format(**new_url)
+
         self.relation_urls.append(new_url)
 
     def get_sorted_relations(self):
         result = dict()
         for url_info in self.relation_urls:
             resource_type = url_info.get('resource_type', 'unknown_resource')
-            resource_name = url_info.get('resource_name', 'unknown_resource')
+            resource_name_list = url_info.get('resource_name', ['unknown_resource'])
+            for resource_name in resource_name_list:
+                result[resource_type] = result.get(resource_type, dict())
+                result[resource_type][resource_name] = result[resource_type].get(resource_name, list())
+                result[resource_type][resource_name].append(url_info)
+        return result
 
-            result[resource_type] = result.get(resource_type, dict())
-            result[resource_type][resource_name] = result[resource_type].get(resource_name, list())
-            result[resource_type][resource_name].append(url_info)
-
+    @property
+    def display_with_relation(self):
+        result = self['result']
+        if isinstance(result, dict):
+            result = copy.deepcopy(self['result'])
+            result['_sugarcoat_relations'] = self.get_sorted_relations()
+        elif isinstance(result, list):
+            result = copy.deepcopy(self['result'])
+            result.append({'_sugarcoat_relations': self.get_sorted_relations()})
 
         return result
+
+    def get_resources(self):
+        return {}
+
+    def add_relation_urls(self, api_base_obj, region, tenant_id):
+        rel_urls = api_base_obj.get_relation_urls()
+        url_kwargs = self.get_resources()
+        url_kwargs['tenant_id'] = tenant_id
+
+        for index, url_info in enumerate(rel_urls):
+            url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or region
+
+            try:
+                url = url_info[0].format(**url_kwargs)
+            except KeyError:
+                continue
+            resource_type = url_info[1].catalog_key
+            resource_name = url_info[2]
+
+            if '_UNDEFINED' not in url:
+                self.add_relation(url=url, region=url_kwargs['region'], resource_name=resource_name, resource_type=resource_type)
+
+        return
+
 
 class APIBase(object):
     _identity = None
@@ -129,7 +141,7 @@ class APIBase(object):
     _accept_header_json = 'application/json'
     url_kwarg_list = list()
     only_region = None
-    result_class = None
+    result_class = APIResult
 
     def _auth_request(self, **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
@@ -149,8 +161,10 @@ class APIBase(object):
             result = exc
 
         end_time = time.time()
-
-        json_result = self.result_class(result, response_time=end_time-start_time, identity_obj=self._identity, region=region)
+        json_result = None
+        if issubclass(self.result_class, APIResult):
+            json_result = self.result_class(result, response_time=end_time-start_time, identity_obj=self._identity, region=region)
+            json_result.add_relation_urls(self, region, self._identity.tenant_id)
 
         return json_result
 
@@ -199,93 +213,41 @@ class APIBase(object):
         return []
 
     def filled_out_urls(self, region, **kwargs):
+
         for kwarg_name in self.url_kwarg_list:
             kwargs[kwarg_name] = kwargs.get(kwarg_name, 'KEY_{0}_UNDEFINED'.format(kwarg_name))
 
         url_list = self.available_urls()
         for index, url in enumerate(url_list):
-            url_list[index] = self.public_endpoint_urls(region=region)[0] + url.format(**kwargs)
-
-        rel_url_list = self.get_relation_urls(region=region)
-        for index, url in enumerate(rel_url_list):
-            rel_url_list[index] = url.format(**kwargs)
+            url_list[index] = '/{0}/{1}{2}'.format(self.catalog_key, self.only_region or region, url).format(**kwargs)
 
         populate = list()
         for index, url in enumerate(url_list):
             populate.append(url)
         populate.sort()
 
-        related = list()
-        for index, url in enumerate(rel_url_list):
-            if '_UNDEFINED' not in url:
-                related.append(url)
+        return {'populated': populate}
 
-        return {'populated': populate, 'rel': related}
 
-    def pprint_html_url_results(self, api_result=None, **kwargs):
-        result = {'links': self.filled_out_urls(**kwargs)}
-        url_list_to_replace = self._identity.url_to_catalog_dict() + list(self.custom_urls())
-        for index, url in enumerate(result['links']['populated']):
-            for replace_url, replace_url_info in url_list_to_replace:
-                if replace_url in url and '_UNDEFINED' not in url:
-                    new_regex = "^({0})([^']*)".format(replace_url)
-                    match_url = re.compile(new_regex)
-                    if len(replace_url_info) == 3:
-                        result['links']['populated'][index] = match_url.sub(r"<a href='/{0}/{1}/{2}\2'>\1\2</a>".format(*replace_url_info), url)
-                    else:
-                        result['links']['populated'][index] = match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), url)
+    def get_relation_urls(self):
+        result_list = list()
 
-        for index, url in enumerate(result['links']['rel']):
-            for replace_url, replace_url_info in url_list_to_replace:
-                if replace_url in url and url.index(replace_url) == 0:
-                    new_regex = "^({0})([^']*)".format(replace_url)
-                    match_url = re.compile(new_regex)
-                    if len(replace_url_info) == 3:
-                        api_result.add_relation(match_url.sub(r"<a href='/{0}/{1}/{2}\2'>\1\2</a>".format(*replace_url_info), url))
-                    else:
-                        api_result.add_relation(match_url.sub(r"<a href='/{0}/{1}\2'>\1\2</a>".format(*replace_url_info), url))
-                elif url.index('/') == 0:
-                    api_result.add_relation("<a href='{0}'>{0}</a>".format(url))
-        del result['links']['rel']
+        for rel_class in self.get_relations():
+            base_url = '/' + rel_class.catalog_key + '/{region}'
+            orig_common_ids = set(rel_class.url_kwarg_list) & set(self.url_kwarg_list)
+            for possible_url in rel_class.available_urls():
+                for kwarg_id in orig_common_ids:
+                    if '{'+kwarg_id+'}' in possible_url:
+                        result_list.append((base_url + possible_url,rel_class,orig_common_ids))
 
-        return result
+        return result_list
 
-    def get_relation_urls(self, region):
+    def get_relations(self):
         result_list = list()
 
         for possible_class in self.__class__.__base__.__subclasses__():
             common_ids = set(possible_class.url_kwarg_list) & set(self.url_kwarg_list)
 
             if common_ids and possible_class != self.__class__:
-                common_ids.add('tenant_id')
-                for possible_url in possible_class.available_urls():
-                    tmp_url = None
-
-                    for kwarg_id in common_ids:
-                        if '{'+kwarg_id+'}' in possible_url:
-                            tmp_url = (tmp_url or possible_url).replace('{'+kwarg_id+'}', '')
-                    if not tmp_url:
-                        continue
-
-                    if '{' not in tmp_url:
-                        if possible_class.only_region is None:
-                            tmp_region = None
-                        elif possible_class.only_region.lower() == 'all':
-                            tmp_region = None
-                        elif possible_class.only_region:
-                            tmp_region = possible_class.only_region
-                        else:
-                            tmp_region = region
-                        base_url = self._identity.service_catalog(name=possible_class.catalog_key, region=tmp_region)
-                        base_url = base_url[0]['endpoints']
-                        base_url = base_url[0]['publicURL']
-                        if '__root__' in possible_url:
-                            base_url = '/'.join(base_url.split('/')[0:3])
-                            possible_url = possible_url.replace('/__root__', '')
-
-                        result_list.append(base_url + possible_url)
-
+                result_list.append(possible_class)
         return result_list
-
-    def custom_urls(self, **kwargs):
-        return []

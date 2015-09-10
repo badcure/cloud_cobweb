@@ -5,7 +5,8 @@ import flask.ext
 from requests.packages import urllib3
 import sugarcoat.rackspace_api.root_apis
 
-from sugarcoat.api.base import app, login_required, display_json
+from sugarcoat.api.base import app, login_required
+import sugarcoat.api.filters
 
 urllib3.disable_warnings()
 
@@ -15,7 +16,7 @@ urllib3.disable_warnings()
 @app.route('/<string:servicename>/<string:region>/<path:new_path>')
 @login_required
 def service_catalog_list(servicename,region,new_path=''):
-    list_obj = sugarcoat.rackspace_api.root_apis.get_catalog_api(servicename)(flask.g.user_info)
+    flask.g.list_obj = sugarcoat.rackspace_api.root_apis.get_catalog_api(servicename)(flask.g.user_info)
     query_args = ''
     new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
 
@@ -24,12 +25,15 @@ def service_catalog_list(servicename,region,new_path=''):
     if query_args:
         query_args = '?'+ query_args[1:]
     new_path += query_args
-    response = list_obj.get_api_resource(region=region, initial_url_append='/' + new_path)
-    kwargs = list_obj.kwargs_from_request(url=new_path, api_result=response['result'], region=region)
+    flask.g.api_response = flask.g.list_obj.get_api_resource(region=region, initial_url_append='/' + new_path)
+    kwargs = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'], region=region)
     tenant_id = flask.g.user_info.tenant_id
-    template_kwargs = list_obj.pprint_html_url_results(region=region, tenant_id=tenant_id, api_result=response, **kwargs)
 
-    return display_json(response=response, tenant_id=tenant_id, template_kwargs=template_kwargs)
+    template_kwargs = dict()
+    template_kwargs['region'] = region
+    template_kwargs['tenant_id'] = flask.g.user_info.tenant_id
+
+    return sugarcoat.api.filters.display_json(response=flask.g.api_response, new_path=new_path, tenant_id=tenant_id, template_kwargs=template_kwargs, region=region, **kwargs)
 
 
 @app.route('/auth_token')
@@ -51,7 +55,6 @@ def refresh_auth_fn():
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
-    print(app.jinja_env.globals)
     message = ''
     return flask.Response(flask.render_template(
         'index.html', message=message, roles=flask.g.user_info.roles(),

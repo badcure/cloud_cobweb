@@ -3,44 +3,25 @@ import sugarcoat.rackspace_api.base
 
 class MonitoringResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
-    @property
-    def pre_html_result(self):
-        split_url = self['url'].split('?')[0].split('/')
-        if not split_url[-1]:
-            split_url.pop()
+    def get_resources(self):
+        result = dict()
+        result['region'] = 'DFW'
+        if 'values' in self['result']:
+            for monitor_obj in self['result']['values']:
+                if 'checks' in monitor_obj:
+                    for check in monitor_obj['checks']:
+                        result['check_id'] = check['id']
+                        result['check_type'] = check['type']
+                if 'entity' in monitor_obj:
+                    result['entity_id'] = monitor_obj['entity']['id']
+                    result['server_uri'] = monitor_obj['entity']['uri']
+                    result['entity_id'] = monitor_obj['entity']['id']
 
-        if 'entities' == split_url[-1]:
-            for index, entry in enumerate(self['result'].get('values', [])):
-                url = self['url'] + "/{resource_id}"
-                self.add_relation(url=url, resource_id=entry['id'], resource_name='entity_id',
-                                  resource_type='cloudMonitoring')
-
-        if 'checks' == split_url[-1]:
-            for index, entry in enumerate(self['result'].get('values', [])):
-                url = self['url'] + "/{resource_id}"
-                self.add_relation(url=url, resource_id=entry['id'], resource_name='check_id',
-                                  resource_type='cloudMonitoring')
-
-        if 'overview' == split_url[-1]:
-            for index, entry in enumerate(self['result'].get('values', [])):
-                entity_id = entry['entity']['id']
-                url =  "/cloudMonitoring/all/entity/{resource_id}"
-                self.add_relation(url=url, resource_id=entity_id, resource_name='entity_id',
-                                  resource_type='cloudMonitoring')
-                server_url = entry['entity']['uri'].replace('.com/', '.com/v2/')
-                self.add_relation(url=server_url, resource_id=entry['entity']['uri'], resource_name='server_uri',
-                                  resource_type='cloudServersOpenStack')
-                url = '/cloudMonitoring/all/entities/{0}'.format(entity_id) + '/checks/{resource_id}'
-                for check in entry['checks']:
-                    self.add_relation(url=url, resource_id=check['id'], resource_name='check_id',
-                                  resource_type='cloudMonitoring')
-
-        return super().pre_html_result
+        return result
 
 
 class LoadBalancerResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
-    @property
     def pre_html_result(self):
         split_url = self['url'].split('?')[0].split('/')
         if not split_url[-1]:
@@ -52,10 +33,27 @@ class LoadBalancerResult(sugarcoat.rackspace_api.base.RackAPIResult):
         return self['result']
 
 
+class ServerResult(sugarcoat.rackspace_api.base.RackAPIResult):
+
+    def get_resources(self):
+        result = dict()
+        if 'server' in self['result']:
+            result['server_id'] = self['result']['server']['id']
+            result['user_id'] = self['result']['server']['user_id']
+
+            result['flavor_id'] = self['result']['server']['flavor']['id']
+            result['image_id'] = self['result']['server']['image']['id']
+            for link in self['result']['server']['links']:
+                if link['rel'] == 'bookmark':
+                    result['server_uri'] = link['href']
+        return result
+
+
 class ServersAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudServersOpenStack'
     url_kwarg_list = ('server_id', 'flavor_id', 'attachment_id', 'image_id', 'metadata_key', 'server_uri',
                        'flavor_class', 'server_request_id')
+    result_class = ServerResult
 
     @classmethod
     def available_urls(cls):
@@ -82,25 +80,6 @@ class ServersAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list.append('/os-networksv2')
         return url_list
 
-    @classmethod
-    def kwargs_from_request(cls, url, api_result,  **kwargs):
-        result = super().kwargs_from_request(url, api_result, **kwargs)
-        path_list = url.split('/')
-        path_list.reverse()
-        current_step = path_list.pop()
-
-        if path_list and current_step == 'servers':
-            if path_list and '-' in path_list[-1]:
-                result['server_id'] = path_list.pop()
-                if 'server' in api_result:
-                    result['flavor_id'] = api_result['server']['flavor']['id']
-                    result['image_id'] = api_result['server']['image']['id']
-                    for link in api_result['server']['links']:
-                        if link['rel'] == 'bookmark':
-                            result['server_uri'] = link['href']
-
-        return result
-
 
 class FeedsAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudFeeds'
@@ -117,17 +96,6 @@ class FeedsAPI(sugarcoat.rackspace_api.base.RackAPI):
             if 'collection' in feed_info and feed_info['collection']['title'] == feed_type:
                 return [self.displayable_json_auth_request(url=feed_info['collection']['href'])]
         return None
-
-    def custom_urls(self, **kwargs):
-        url_list = list()
-        for feed_entry in self.feed_list_payload.get('service', {}).get('workspace', []):
-            if 'collection' not in feed_entry:
-                continue
-            title = feed_entry['title']
-            url = feed_entry['collection']['href']
-            url_list.append((url, ('cloudFeeds', '{0}/{1}'.format(self.feed_region, title))))
-
-        return url_list
 
     def public_endpoint_urls(self, region=None, version=None):
         if not self.feed_task:
@@ -252,7 +220,6 @@ class MonitoringAPI(sugarcoat.rackspace_api.base.RackAPI):
 
 class OrachastrationResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
-    @property
     def pre_html_result(self):
         if 'resource_types' in self['result']:
             for index, entry in enumerate(self['result']['resource_types']):
@@ -318,7 +285,7 @@ class OrchastrationAPI(sugarcoat.rackspace_api.base.RackAPI):
                 path_list.pop()
             if path_list:
                 result['event_id'] = path_list.pop()
-        elif 'resourse_types' == current_step:
+        elif 'resource_types' == current_step:
             if path_list:
                 result['type_name'] = path_list.pop()
 
@@ -517,5 +484,6 @@ def get_catalog_api(catalog_key):
         if possible_class.catalog_key == catalog_key:
             return possible_class
     return None
+
 
 

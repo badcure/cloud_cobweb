@@ -44,9 +44,9 @@
 <div class="json_display"><pre id="response_code">{{ json_result.response_headers|pprint_obj }}</pre></div>
 <h1>Data - {{ json_result.result_type }}</h1>
     {% if json_result.safe_html %}
-        <div class="json_display"><pre id="display_code">{{ json_result.pprint_html_result|safe }}</pre></div>
+        <div class="json_display"><pre id="display_code">{{ json_result.display_with_relation|convert_to_urls|safe }}</pre></div>
     {% else %}
-        <div class="json_display"><pre id="display_code">{{ json_result.pprint_html_result }}</pre></div>
+        <div class="json_display"><pre id="display_code">{{ json_result.display_with_relation|convert_to_urls }}</pre></div>
     {% endif %}
 {% endblock %}
 
@@ -55,20 +55,11 @@
 <div class="more_urls">
     <div class="populated_urls">
         <ul>
-            {% for url in links.populated %}
+            {% for url in additional_urls.links.populated %}
             <li>{{ url|safe }}</li>
             {% endfor %}
         </ul>
     </div>
-    Related
-    <div class="rel_urls">
-        <ul>
-            {% for url in links.rel %}
-            <li>{{ url|safe }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-
 </div>
 
 {% endblock %}
