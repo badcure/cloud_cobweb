@@ -11,6 +11,14 @@ import flask.ext.login
 def pprint_obj(obj):
     return pprint.pformat(obj)
 
+@sugarcoat.api.base.app.template_filter('print_headers')
+def print_headers(obj):
+    result = ''
+    for key, value in obj.items():
+        result += '{0}: {1}\n'.format(key, value)
+    return result
+
+
 @sugarcoat.api.base.app.template_filter('convert_to_urls')
 def convert_to_urls(result):
     if not isinstance(result, str):

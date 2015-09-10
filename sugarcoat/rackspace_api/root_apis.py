@@ -1,6 +1,18 @@
 import sugarcoat.rackspace_api.base
 
 
+class OrachastrationResult(sugarcoat.rackspace_api.base.RackAPIResult):
+
+    def get_resources(self):
+        result = dict()
+        if 'resource_types' in self['result']:
+            for index, entry in enumerate(self['result']['resource_types']):
+                result['heat_resource_type'] = entry
+
+        return result
+
+
+
 class MonitoringResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
     def get_resources(self):
@@ -26,6 +38,8 @@ class MonitoringResult(sugarcoat.rackspace_api.base.RackAPIResult):
 class LoadBalancerResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
     pass
+
+
 class BackupResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
     def get_resources(self):
@@ -218,29 +232,9 @@ class MonitoringAPI(sugarcoat.rackspace_api.base.RackAPI):
         return result
 
 
-class OrachastrationResult(sugarcoat.rackspace_api.base.RackAPIResult):
-
-    def pre_html_result(self):
-        if 'resource_types' in self['result']:
-            for index, entry in enumerate(self['result']['resource_types']):
-                self['result']['resource_types'][index] = '{0}@@{1}/{0}'.format(entry, self['url'])
-        elif 'stacks' in self['result']:
-            for index, entry in enumerate(self['result']['stacks']):
-                entry['stack_name'] = '{0}@@{1}/{0}'.format(entry['stack_name'], self['url'])
-        elif 'events' in self['result']:
-            for index, entry in enumerate(self['result']['events']):
-                if 'physical_resource_id' not in entry:
-                    continue
-                if entry['physical_resource_id']:
-                    entry['physical_resource_id'] = '{0}@@/cloudSeversOpenStack/{1}/{0}'.format(entry['physical_resource_id'])
-
-
-        return self['result']
-
-
 class OrchastrationAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudOrchestration'
-    url_kwarg_list = ('stack_name', 'stack_id', 'resource_name', 'event_id', 'type_name', 'server_id')
+    url_kwarg_list = ('stack_name', 'stack_id', 'heat_resource_name', 'heat_event_id', 'heat_resource_type', 'server_id')
     result_class = OrachastrationResult
 
     @classmethod
@@ -251,49 +245,19 @@ class OrchastrationAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list.append('/stacks/{stack_name}/{stack_id}')
         url_list.append('/stacks/{stack_name}/resources')
         url_list.append('/stacks/{stack_name}/{stack_id}/resources​')
-        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{resource_name}')
-        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{resource_name}/metadata')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}/metadata')
         url_list.append('/resource_types')
-        url_list.append('/resource_types/{type_name}')
-        url_list.append('/resource_types/{type_name}/template')
+        url_list.append('/resource_types/{heat_resource_type}')
+        url_list.append('/resource_types/{heat_resource_type}/template')
         url_list.append('/stacks/{stack_name}/events')
         url_list.append('/stacks/{stack_name}/{stack_id}/events')
-        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{resource_name}/events​')
-        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{resource_name}/events/{event_id}')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}/events​')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}/events/{heat_event_id}')
         url_list.append('/build_info')
 
 
         return url_list
-
-    @classmethod
-    def kwargs_from_request(cls, url, api_result,  **kwargs):
-        result = super().kwargs_from_request(url, api_result, **kwargs)
-
-        path_list = url.split('/')
-        path_list.reverse()
-        current_step = path_list.pop()
-        if 'stacks' in current_step:
-            if path_list:
-                result['stack_name'] = path_list.pop()
-            if path_list:
-                result['stack_id'] = path_list.pop()
-            if path_list:
-                path_list.pop()
-            if path_list:
-                result['resource_name'] = path_list.pop()
-            if path_list:
-                path_list.pop()
-            if path_list:
-                result['event_id'] = path_list.pop()
-        elif 'resource_types' == current_step:
-            if path_list:
-                result['type_name'] = path_list.pop()
-
-        if 'event' in api_result:
-            result['resource_name'] = api_result['event']['resource_name']
-            result['type_name'] = api_result['event']['resource_type']
-
-        return result
 
 
 class CloudFilesAPI(sugarcoat.rackspace_api.base.RackAPI):
@@ -466,8 +430,9 @@ class CloudLoadBalancersAPI(sugarcoat.rackspace_api.base.RackAPI):
                 pass
         return result
 
+
 class IdentityAPI(sugarcoat.rackspace_api.base.RackAPI):
-    catalog_key = 'cloudNetworks'
+    catalog_key = 'cloudIdentity'
     _base_url = 'https://identity.api.rackspacecloud.com'
     only_region = 'all'
     url_kwarg_list = ('user_id')
@@ -478,6 +443,21 @@ class IdentityAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list.append('/​')
         return url_list
 
+    def get_api_resource(self, region=None, initial_url_append=None, data_object=None, **kwargs):
+        root_url = self._base_url
+
+        if '__root__' == initial_url_append.split('/')[1]:
+            initial_url_append = '/' + '/'.join(initial_url_append.split('/')[2:])
+
+            url = "{0}{1}".format(root_url, initial_url_append)
+        else:
+            url = "{0}/v2.0{1}".format(root_url, initial_url_append)
+
+        result = self.displayable_json_auth_request(url=url, region=region, **kwargs)
+        if isinstance(data_object, type):
+            return data_object(result)
+
+        return result
 
 def get_catalog_api(catalog_key):
     for possible_class in sugarcoat.rackspace_api.base.RackAPI.__subclasses__():

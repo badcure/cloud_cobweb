@@ -13,8 +13,8 @@ class APIResult(dict):
     safe_html = None
     relation_urls = None
 
-    def __init__(self, result, request_headers=None, response_headers=None, url=None, status_code=None,
-                 identity_obj=None, **kwargs):
+    def __init__(self, result, request_headers=None, response_headers=None, url=None, status_code=-2,
+                 identity_obj=None, method='Unknown', request_body=None, **kwargs):
         super().__init__(**kwargs)
         self.relation_urls = list()
         self._identity_obj = identity_obj
@@ -43,7 +43,9 @@ class APIResult(dict):
             url = result.request.url
             status_code = result.status_code
             request_headers = dict(**result.request.headers)
+            request_body = result.request.body
             response_headers = dict(**result.headers)
+            method = result.request.method
         elif isinstance(result, requests.RequestException):
             self['result'] = str(result)
             url = result.request.url
@@ -52,12 +54,13 @@ class APIResult(dict):
             status_code = -1
         else:
             self['result'] = result
-            status_code = -2
 
         self['request_headers'] = request_headers
         self['response_headers'] = response_headers
         self['url'] = url
         self['status_code'] = status_code
+        self['method'] = method
+        self['request_body'] = request_body
 
         for header_name in MASK_HEADERS:
             if header_name in self['request_headers']:
@@ -171,12 +174,18 @@ class APIBase(object):
 
     @classmethod
     def base_request(cls, method='get', **kwargs):
+        kwargs['headers'] = kwargs.get('headers', {})
+
         if isinstance(kwargs.get('data'), dict):
             kwargs['data'] = json.dumps(kwargs['data'])
-            kwargs['headers'] = kwargs.get('headers', {})
             kwargs['headers']['Content-Type'] = 'application/json'
 
-        return getattr(requests, method)(**kwargs)
+        if 'additional_headers' in kwargs:
+            kwargs['headers'].update(kwargs['additional_headers'])
+            del kwargs['additional_headers']
+
+
+        return getattr(requests, method.lower())(**kwargs)
 
     @classmethod
     def display_base_request(cls, **kwargs):
@@ -193,7 +202,7 @@ class APIBase(object):
                 result[0]['endpoints']]
 
 
-    def get_api_resource(self, region=None, initial_url_append=None, data_object=None):
+    def get_api_resource(self, region=None, initial_url_append=None, data_object=None, **kwargs):
         region_url = self.public_endpoint_urls(region=region)[0]
 
         if '__root__' == initial_url_append.split('/')[1]:
@@ -202,7 +211,7 @@ class APIBase(object):
 
         url = "{0}{1}".format(region_url, initial_url_append)
 
-        result = self.displayable_json_auth_request(url=url, region=region)
+        result = self.displayable_json_auth_request(url=url, region=region, **kwargs)
         if isinstance(data_object, type):
             return data_object(result)
 

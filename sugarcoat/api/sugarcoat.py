@@ -11,6 +11,46 @@ import sugarcoat.api.filters
 urllib3.disable_warnings()
 
 
+@app.route('/cloudIdentity/all')
+@app.route('/cloudIdentity/all/')
+@app.route('/cloudIdentity/all/<path:new_path>')
+def identity_request(new_path=''):
+
+    method = flask.request.method
+    request_data = flask.request.data
+    additional_headers = {}
+    for query_name, query_value in flask.request.args.items():
+        if 'sugarcoat_method' in query_name:
+            method = query_value
+        elif 'sugarcoat_body' in query_name:
+            request_data = query_value
+        elif 'sugarcoat_header' in query_name:
+            new_header = '_'.join(query_name.split('_')[2:])
+            additional_headers[new_header] = query_value
+
+    flask.g.list_obj = sugarcoat.rackspace_api.root_apis.get_catalog_api('cloudIdentity')(flask.g.user_info)
+    query_args = ''
+    new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
+
+    for key, value in flask.request.args.items():
+        if 'sugarcoat_' in key:
+            continue
+        query_args += '&{0}={1}'.format(key, value)
+    if query_args:
+        query_args = '?'+ query_args[1:]
+    new_path += query_args
+    flask.g.api_response = flask.g.list_obj.get_api_resource(region='all', initial_url_append='/' + new_path, method=method, data=request_data, additional_headers=additional_headers)
+    kwargs = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'], region='all')
+
+    template_kwargs = dict()
+    template_kwargs['region'] = 'all'
+    template_kwargs['tenant_id'] = flask.g.user_info.tenant_id
+
+    if 'region' in kwargs:
+        del kwargs['region']
+    return sugarcoat.api.filters.display_json(response=flask.g.api_response, new_path=new_path, tenant_id=template_kwargs['tenant_id'], template_kwargs=template_kwargs, region='all', **kwargs)
+
+
 @app.route('/<string:servicename>/<string:region>')
 @app.route('/<string:servicename>/<string:region>/')
 @app.route('/<string:servicename>/<string:region>/<path:new_path>')
@@ -27,7 +67,6 @@ def service_catalog_list(servicename,region,new_path=''):
     new_path += query_args
     flask.g.api_response = flask.g.list_obj.get_api_resource(region=region, initial_url_append='/' + new_path)
     kwargs = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'], region=region)
-    tenant_id = flask.g.user_info.tenant_id
 
     template_kwargs = dict()
     template_kwargs['region'] = region
@@ -35,7 +74,8 @@ def service_catalog_list(servicename,region,new_path=''):
 
     if 'region' in kwargs:
         del kwargs['region']
-    return sugarcoat.api.filters.display_json(response=flask.g.api_response, new_path=new_path, tenant_id=tenant_id, template_kwargs=template_kwargs, region=region, **kwargs)
+    return sugarcoat.api.filters.display_json(response=flask.g.api_response, new_path=new_path, tenant_id=flask.g.user_info.tenant_id, template_kwargs=template_kwargs, region=region, **kwargs)
+
 
 
 @app.route('/auth_token')
