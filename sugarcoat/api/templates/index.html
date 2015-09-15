@@ -3,35 +3,51 @@
 {% set header_class="auth_header" %}
 
 {% block header_body %}
-    <span class="auth_expiretime">Expires in :</span>
-    {% if expire_time <= 0 %}
-    Auth as expired
-    {% else %}
-        {% if expire_time > 7200 %}
-            {{ (expire_time/3600)|int }} hour(s)
-        {% elif expire_time > 60 %}
-            {{ (expire_time/60)|int }} minute(s)
+    {% if g.user_info %}
+        <span class="auth_expiretime">Expires in :</span>
+        {% if g.user_info.token_seconds_left <= 0 %}
+        Auth as expired
         {% else %}
-            {{ expire_time }} seconds.
+            {% if g.user_info.token_seconds_left > 7200 %}
+                {{ (g.user_info.token_seconds_left/3600)|int }} hour(s)
+            {% elif g.user_info.token_seconds_left > 60 %}
+                {{ (g.user_info.token_seconds_left/60)|int }} minute(s)
+            {% else %}
+                {{ g.user_info.token_seconds_left }} seconds.
+            {% endif %}
         {% endif %}
-    {% endif %}
-    <br>
+        <br>
 
-    <div class="auth_token">
-        See complete auth <a href="/auth_token">here</a><br>
-    </div>
-    <div class="refresh_token">
-        <a href="/refresh_auth">Refresh auth info</a><br>
-    </div>
+        <div class="auth_token">
+            See complete auth <a href="/auth_token">here</a><br>
+        </div>
+        <div class="refresh_token">
+            <a href="/refresh_auth">Refresh auth info</a><br>
+        </div>
+    {%  else %}
+        No info, need to log in.
+    {%  endif %}
 {% endblock %}
 
 
 {% block main_body %}
-    {{ 'tes'|convert_to_urls }}
     <div id="complete_service_catalog">
+        <h2> Identity </h2>
+        {% if not g.user_info.token %}
+            <form method="POST" action="/cloudIdentity/all/tokens">
+            {{ form.hidden_tag() }}
+
+            {% for field in form %}
+                {% if field.widget.input_type != 'hidden' %} {{ field.label }} {% endif %}
+                {{ field }}<br>
+            {% endfor %}
+            <input type="submit" name="Login">
+            </form>
+
+        {%  endif %}
         <h2>Service Catalog</h2>
         <ul>
-            {% for role in service_catalog %}
+            {% for role in g.user_info.service_catalog_list %}
             <div id="catalog_{{role.name}}">
                 <li>
                     {{ role.name }}

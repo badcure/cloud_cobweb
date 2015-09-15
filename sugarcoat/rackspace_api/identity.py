@@ -31,10 +31,18 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
         """
         apikey = apikey or self.apikey
         payload = self.generate_apikey_auth_payload(apikey=apikey)
+
+        if not payload:
+            self._auth = None
+            return None
+
         url = "{0}/v2.0/tokens".format(BASE_URL)
         result = self.base_request(method='post', data=payload, url=url)
-        result.raise_for_status()
-        self._auth = result.json()
+        try:
+            result.raise_for_status()
+            self._auth = result.json()
+        except requests.HTTPError as exc:
+            pass
 
     def validate_token(self):
         """
@@ -56,12 +64,7 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
 
     @property
     def token(self):
-        try:
-            self.prepare_auth()
-        except requests.HTTPError as http_exc:
-            print("Error response {status_code}: {message}".format(status_code=http_exc.response.status_code,
-                                                                   message=http_exc.response.text))
-            return None
+        self.prepare_auth()
         if self._auth:
             return self._auth['access']['token']['id']
         return None
@@ -91,6 +94,9 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
             return self.auth_payload['access']['token']['tenant']['name']
 
     def generate_apikey_auth_payload(self, apikey=None):
+        if not self._username or not (apikey or self._apikey):
+            return None
+
         result = {
             "auth": {
                 "RAX-KSKEY:apiKeyCredentials":{
@@ -101,31 +107,33 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
         return result
 
     def service_catalog(self, name=None, catalog_type=None, region=None, region_specific=False):
+        if not self._auth:
+            return list()
         if region:
             region=region.upper()
         self.prepare_auth()
         result = copy.deepcopy(self._auth['access']['serviceCatalog'])
         if name is not None:
-            new_result = []
+            new_result = list()
             for service in result:
                 if name == service['name']:
                     new_result.append(service)
             result = new_result
 
         if catalog_type is not None:
-            new_result = []
+            new_result = list()
             for service in result:
                 if catalog_type == service['type']:
                     new_result.append(service)
             result = new_result
 
         if region is not None:
-            new_result = []
+            new_result = list()
             allowed_regions = [region, None]
             if region_specific:
                 allowed_regions = [region]
             for service in result:
-                new_endpoint = []
+                new_endpoint = list()
                 for endpoint in service['endpoints']:
                     if endpoint.get('region') in allowed_regions:
                         new_endpoint.append(endpoint)
@@ -136,6 +144,10 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
             result = new_result
         return result
 
+    @property
+    def service_catalog_list(self):
+        return self.service_catalog()
+
     def display_safe(self):
         result_dict = copy.deepcopy(self._auth)
         result_dict['access']['token']['id'] = '<masked>'
@@ -143,8 +155,9 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
 
     def roles(self):
         roles = []
-        for role in self._auth.get('access', {}).get('user', {}).get('roles', []):
-            roles.append(role)
+        if self._auth:
+            for role in self._auth.get('access', {}).get('user', {}).get('roles', []):
+                roles.append(role)
         return roles
 
     def service_catalog_names(self):
@@ -153,19 +166,24 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
             catalog_names.append(service_name['name'])
         return catalog_names
 
+    @property
     def token_expire_time(self):
-        expire_time = self._auth['access']['token']['expires']
-        if self.token:
-            return time.strptime(('.'.join(expire_time.split('.')[0:-1])+" UTC"),'%Y-%m-%dT%H:%M:%S %Z')
-        return None
-
-    def token_seconds_left(self):
-        if not self.token_expire_time():
+        if not self.token:
             return None
-        expire_in_seconds = time.mktime(self.token_expire_time())
+        expire_time = self._auth['access']['token']['expires']
+        return time.strptime(('.'.join(expire_time.split('.')[0:-1])+" UTC"),'%Y-%m-%dT%H:%M:%S %Z')
+
+    @property
+    def token_seconds_left(self):
+        if not self.token:
+            return -1
+        expire_in_seconds = time.mktime(self.token_expire_time)
         return int(expire_in_seconds - time.mktime(time.gmtime()))
 
     def refresh_auth(self):
+        if not self.tenant_id or not self.token:
+            return None
+
         payload = {'auth': {
             "tenantId": self.tenant_id,
             "token": {
@@ -177,11 +195,15 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
 
     def url_to_catalog_dict(self):
         result_list = []
+        if not self._auth:
+            return []
         for service in self._auth['access']['serviceCatalog']:
             service_name = service['name']
             for endpoint in service['endpoints']:
                 result_list.append((endpoint['publicURL'], (service_name, endpoint.get('region','all'))))
                 result_list.append(('/'.join(endpoint['publicURL'].split('/')[0:3]), (service_name, endpoint.get('region','all'), '__root__')))
+            result_list.append(('https://identity.api.rackspacecloud.com/v2.0', ('cloudIdentity', 'all')))
+            result_list.append(('https://identity.api.rackspacecloud.com', ('cloudIdentity', 'all', '__root__')))
 
         return sorted(result_list, key=lambda key_pair: -(len(key_pair[1])*100+len(key_pair[0])))
 

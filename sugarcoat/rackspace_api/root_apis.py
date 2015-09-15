@@ -12,7 +12,6 @@ class OrachastrationResult(sugarcoat.rackspace_api.base.RackAPIResult):
         return result
 
 
-
 class MonitoringResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
     def get_resources(self):
@@ -78,7 +77,7 @@ class ServerResult(sugarcoat.rackspace_api.base.RackAPIResult):
 class ServersAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudServersOpenStack'
     url_kwarg_list = ('server_id', 'flavor_id', 'attachment_id', 'image_id', 'metadata_key', 'server_uri',
-                       'flavor_class', 'server_request_id')
+                       'flavor_class', 'server_request_id', 'user_id')
     result_class = ServerResult
 
     @classmethod
@@ -111,25 +110,6 @@ class FeedsAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudFeeds'
     url_kwarg_list = ('server_id', 'entity_id', 'user_id', 'container_name', 'machine_agent_id', 'username', 'load_balancer_id')
     _accept_header_json = 'application/vnd.rackspace.atom+json'
-    feed_list_payload = dict()
-    feed_region = 'all'
-    feed_task = None
-
-
-    def get_feed_events(self, feed_type, region):
-        result_obj = self.get_api_resource(region)
-        for feed_info in result_obj['result']['service']['workspace']:
-            if 'collection' in feed_info and feed_info['collection']['title'] == feed_type:
-                return [self.displayable_json_auth_request(url=feed_info['collection']['href'])]
-        return None
-
-    def public_endpoint_urls(self, region=None, version=None):
-        if not self.feed_task:
-            return super().public_endpoint_urls(region, version)
-        for feed_entry in self.feed_list_payload.get('service', {}).get('workspace', []):
-            if feed_entry['title'] == self.feed_task:
-                return [feed_entry['collection']['href']]
-        return None
 
     @classmethod
     def available_urls(cls):
@@ -435,11 +415,27 @@ class IdentityAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudIdentity'
     _base_url = 'https://identity.api.rackspacecloud.com'
     only_region = 'all'
-    url_kwarg_list = ('user_id')
+    url_kwarg_list = ('user_id', 'identity_token_id', 'identity_role_id', 'identity_domain_id', 'identity_alias')
 
     @classmethod
     def available_urls(cls):
         url_list = list()
+        url_list.append('/​')
+        url_list.append('/OS-KSADM/roles​')
+        url_list.append('/OS-KSADM/roles/{identity_role_id}​')
+        url_list.append('/users/{user_id}/roles​')
+        url_list.append('/tokens/{identity_token_id}')
+        url_list.append('/RAX-AUTH/domains​')
+        url_list.append('/RAX-AUTH/domains/{identity_domain_id}')
+        url_list.append('/RAX-AUTH/secretqa/questions​')
+        url_list.append('/extensions​')
+        url_list.append('/extensions/{identity_alias}​')
+        url_list.append('/users​​')
+        url_list.append('/users/{user_id}')
+        url_list.append('/users/{user_id}/RAX-AUTH/admins​')
+        url_list.append('/users/{user_id}/OS-KSADM/credentials/')
+        url_list.append('/​')
+        url_list.append('/​')
         url_list.append('/​')
         return url_list
 
@@ -458,6 +454,7 @@ class IdentityAPI(sugarcoat.rackspace_api.base.RackAPI):
             return data_object(result)
 
         return result
+
 
 def get_catalog_api(catalog_key):
     for possible_class in sugarcoat.rackspace_api.base.RackAPI.__subclasses__():

@@ -94,11 +94,10 @@ class APIResult(dict):
         result = dict()
         for url_info in self.relation_urls:
             resource_type = url_info.get('resource_type', 'unknown_resource')
-            resource_name_list = url_info.get('resource_name', ['unknown_resource'])
-            for resource_name in resource_name_list:
-                result[resource_type] = result.get(resource_type, dict())
-                result[resource_type][resource_name] = result[resource_type].get(resource_name, list())
-                result[resource_type][resource_name].append(url_info)
+            resource_name = url_info.get('resource_name', 'unknown_resource')
+            result[resource_type] = result.get(resource_type, dict())
+            result[resource_type][resource_name] = result[resource_type].get(resource_name, list())
+            result[resource_type][resource_name].append(url_info)
         return result
 
     @property
@@ -122,9 +121,6 @@ class APIResult(dict):
         url_kwargs['tenant_id'] = tenant_id
         for index, url_info in enumerate(rel_urls):
             url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or region
-            print(url_info)
-            print(url_kwargs)
-
             try:
                 url = url_info[0].format(**url_kwargs)
             except KeyError:
@@ -148,8 +144,9 @@ class APIBase(object):
     result_class = APIResult
 
     def _auth_request(self, **kwargs):
-        kwargs['headers'] = kwargs.get('headers', {})
-        kwargs['headers']['X-Auth-Token'] = self.token
+        if self.token:
+            kwargs['headers'] = kwargs.get('headers', {})
+            kwargs['headers']['X-Auth-Token'] = self.token
         result = self.display_base_request(**kwargs)
         return result
 
@@ -246,10 +243,10 @@ class APIBase(object):
             base_url = '/' + rel_class.catalog_key + '/{region}'
             orig_common_ids = set(rel_class.url_kwarg_list) & set(self.url_kwarg_list)
             for possible_url in rel_class.available_urls():
-                print(possible_url)
                 for kwarg_id in orig_common_ids:
                     if '{'+kwarg_id+'}' in possible_url:
-                        result_list.append((base_url + possible_url,rel_class,orig_common_ids))
+                        print((base_url + possible_url,rel_class,kwarg_id))
+                        result_list.append((base_url + possible_url,rel_class,kwarg_id))
 
         return result_list
 
@@ -262,3 +259,7 @@ class APIBase(object):
             if common_ids and possible_class != self.__class__:
                 result_list.append(possible_class)
         return result_list
+
+    @classmethod
+    def get_catalog_api(cls, *args, **kwargs):
+        return None

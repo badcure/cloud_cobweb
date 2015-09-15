@@ -40,7 +40,7 @@
 {% block main_body %}
 <h1>{{ json_result.method }} - Request</h1>
 <div class="json_display"><pre id="request_code">{{ json_result.request_headers|print_headers }}</pre></div>
-<h1>Request Body</h1>
+<h1>Request Body{% if not json_result.request_body %} - Empty{% endif %}</h1>
 <div class="json_display"><pre id="response_code">{{ json_result.request_body }}</pre></div>
 
     <h1>Response</h1>

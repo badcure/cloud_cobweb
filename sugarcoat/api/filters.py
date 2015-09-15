@@ -6,11 +6,6 @@ import re
 import flask
 import flask.ext.login
 
-
-@sugarcoat.api.base.app.template_filter('pprint_obj')
-def pprint_obj(obj):
-    return pprint.pformat(obj)
-
 @sugarcoat.api.base.app.template_filter('print_headers')
 def print_headers(obj):
     result = ''
@@ -40,10 +35,10 @@ def convert_to_urls(result):
 
 @sugarcoat.api.base.app.before_request
 def before_request(*args, **kwargs):
+    flask.g.user_info = sugarcoat.rackspace_api.identity.Identity()
     if 'user_info' in flask.session:
         flask.g.user_info = sugarcoat.rackspace_api.identity.Identity(auth_info=flask.session['user_info'])
-    else:
-        flask.g.user_info = None
+
 
     flask.g.api_response = None
     flask.g.list_obj = None
@@ -52,14 +47,6 @@ def before_request(*args, **kwargs):
 @sugarcoat.api.base.app.after_request
 def after_request(response):
     return response
-
-@sugarcoat.api.base.login_manager.user_loader
-def user_loader(user_id):
-    """Given *user_id*, return the associated User object.
-
-    :param unicode user_id: user_id (email) user to retrieve
-    """
-    return sugarcoat.api.base.LoginUser(user_id)
 
 
 def display_json(response, new_path, region, template_kwargs=None, additional_urls=None, **kwargs):
@@ -78,6 +65,7 @@ def display_json(response, new_path, region, template_kwargs=None, additional_ur
         pass
 
     return flask.jsonify(response, **kwargs)
+
 
 def convert_to_related(new_path, region, api_result, **kwargs):
     resource_kwargs = api_result.get_resources()
