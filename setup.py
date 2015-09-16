@@ -1,6 +1,6 @@
 import re
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def match(x):
     #ignore comments
@@ -29,7 +29,7 @@ setup(
     author='Brian Price',
     author_email='brian.price@badcure.com',
     url='https://github.com/badcure/sugarcoat/',
-    packages=['sugarcoat'],
+    packages=find_packages() + ['sugarcoat.api.templates'],
     include_package_data=True,
     zip_safe=False,
     install_requires=required,

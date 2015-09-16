@@ -5,16 +5,12 @@ import flask.ext
 from requests.packages import urllib3
 import sugarcoat.rackspace_api.root_apis
 import sugarcoat.rackspace_api.identity
-
-
 from sugarcoat.api.base import app
 import sugarcoat.api.base
 import sugarcoat.api.filters
 import sugarcoat.rackspace_api.base
 
 urllib3.disable_warnings()
-
-
 
 
 @app.route('/cloudIdentity/all', methods=['GET', 'POST'])
@@ -148,4 +144,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",debug=True)
+    app.run(host="0.0.0.0")
