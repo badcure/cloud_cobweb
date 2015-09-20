@@ -31,6 +31,7 @@ setup(
     url='https://github.com/badcure/sugarcoat/',
     packages=find_packages() + ['sugarcoat.api.templates'],
     include_package_data=True,
+    package_data={'sugarcoat': ['api/templates/*', 'api/static/*'], },
     zip_safe=False,
     install_requires=required,
 )
