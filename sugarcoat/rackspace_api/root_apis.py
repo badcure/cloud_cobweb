@@ -394,21 +394,68 @@ class CloudLoadBalancersAPI(sugarcoat.rackspace_api.base.RackAPI):
 
         return url_list
 
-    @classmethod
-    def kwargs_from_request(cls, url, api_result,  **kwargs):
-        result = super().kwargs_from_request(url, api_result, **kwargs)
 
-        path_list = url.split('/')
-        path_list.reverse()
-        if path_list[-1] != 'loadbalancers':
-            return result
-        path_list.pop()
-        if path_list:
-            try:
-                result['load_balancer_id'] = int(path_list.pop())
-            except ValueError:
-                pass
-        return result
+class CloudBlockStorageAPI(sugarcoat.rackspace_api.base.RackAPI):
+    catalog_key = 'cloudBlockStorage'
+    url_kwarg_list = ('volume_id', 'volume_type_id', 'snapshot_id')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/volumes')
+        url_list.append('/volumes/detail')
+        url_list.append('/volumes/{volume_id}​')
+        url_list.append('/types​')
+        url_list.append('/types/{volume_type_id}')
+        url_list.append('/snapshots​')
+        url_list.append('/snapshots/detail​')
+        url_list.append('/snapshots/{snapshot_id}')
+        url_list.append('/snapshots/{snapshot_id}/metadata')
+
+        return url_list
+
+
+class CloudQueuesAPI(sugarcoat.rackspace_api.base.RackAPI):
+    catalog_key = 'cloudQueues'
+    url_kwarg_list = ('queue_name', 'message_id', 'claim_id')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/')
+        url_list.append('/queues​')
+        url_list.append('/queues/{queue_name}')
+        url_list.append('/queues/{queue_name}/metadata')
+        url_list.append('/queues/{queue_name}/stats')
+        url_list.append('/queues/{queue_name}/messages​')
+        url_list.append('/queues/{queue_name}/messages/{message_id}')
+        url_list.append('/queues/{queue_name}/claims/{claim_id}')
+
+        return url_list
+
+
+class CloudBigDataAPI(sugarcoat.rackspace_api.base.RackAPI):
+    catalog_key = 'cloudBigData'
+    url_kwarg_list = ('bigdata_cred_type', 'distro_id', 'stack_id', 'cluster_id')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/')
+        url_list.append('/credentials')
+        url_list.append('/credentials/{bigdata_cred_type}')
+        url_list.append('/distros')
+        url_list.append('/distros/{distro_id}')
+        url_list.append('/stacks')
+        url_list.append('/stacks/{stack_id}')
+        url_list.append('/clusters')
+        url_list.append('/clusters/{cluster_id}')
+        url_list.append('/clusters/{cluster_id}/nodes')
+        url_list.append('/scripts')
+        url_list.append('/flavors')
+        url_list.append('/limits')
+
+        return url_list
 
 
 class IdentityAPI(sugarcoat.rackspace_api.base.RackAPI):
