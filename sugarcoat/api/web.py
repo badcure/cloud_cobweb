@@ -39,11 +39,10 @@ def identity_request(new_path=''):
             continue
         query_args += '&{0}={1}'.format(key, value)
     if query_args:
-        query_args = '?'+ query_args[1:]
+        query_args = '?' + query_args[1:]
     new_path += query_args
     template_kwargs = dict()
     template_kwargs['region'] = 'all'
-    kwargs = dict()
     form = sugarcoat.api.base.LoginForm(prefix='login')
     if flask.request.method == 'POST' and form.validate_on_submit():
         # Login and validate the user.
@@ -58,9 +57,12 @@ def identity_request(new_path=''):
             }
         }
 
-    flask.g.api_response = flask.g.list_obj.get_api_resource(region='all', initial_url_append='/' + new_path, method=method, data=request_data, additional_headers=additional_headers)
+    flask.g.api_response = flask.g.list_obj.get_api_resource(
+        region='all', initial_url_append='/' + new_path, method=method, data=request_data,
+        additional_headers=additional_headers)
     if flask.request.method == 'POST' and form.validate_on_submit():
-        flask.g.api_response['request_body'] = flask.g.api_response['request_body'].replace('"'+form.password.data+'"', '"<masked>"')
+        flask.g.api_response['request_body'] = flask.g.api_response['request_body'].replace(
+            '"'+form.password.data+'"', '"<masked>"')
         if flask.g.api_response['status_code'] == 200:
             flask.session['user_info'] = flask.g.api_response['result']
             flask.g.user_info = sugarcoat.rackspace_api.identity.Identity(flask.session['user_info'])
@@ -68,24 +70,26 @@ def identity_request(new_path=''):
 
     if 'region' in kwargs:
         del kwargs['region']
-    return sugarcoat.api.filters.display_json(response=flask.g.api_response, new_path=new_path, template_kwargs=template_kwargs, region='all', **kwargs)
+    return sugarcoat.api.filters.display_json(response=flask.g.api_response, template_kwargs=template_kwargs,
+                                              region='all', **kwargs)
 
 
-@app.route('/<string:servicename>/<string:region>')
-@app.route('/<string:servicename>/<string:region>/')
-@app.route('/<string:servicename>/<string:region>/<path:new_path>')
-def service_catalog_list(servicename,region,new_path=''):
-    flask.g.list_obj = sugarcoat.rackspace_api.root_apis.get_catalog_api(servicename)(flask.g.user_info)
+@app.route('/<string:service_name>/<string:region>')
+@app.route('/<string:service_name>/<string:region>/')
+@app.route('/<string:service_name>/<string:region>/<path:new_path>')
+def service_catalog_list(service_name, region, new_path=''):
+    flask.g.list_obj = sugarcoat.rackspace_api.root_apis.get_catalog_api(service_name)(flask.g.user_info)
     query_args = ''
     new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
 
     for key, value in flask.request.args.items():
         query_args += '&{0}={1}'.format(key, value)
     if query_args:
-        query_args = '?'+ query_args[1:]
+        query_args = '?' + query_args[1:]
     new_path += query_args
     flask.g.api_response = flask.g.list_obj.get_api_resource(region=region, initial_url_append='/' + new_path)
-    kwargs = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'], region=region)
+    kwargs = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'],
+                                                  region=region)
 
     template_kwargs = dict()
     template_kwargs['region'] = region
@@ -93,8 +97,8 @@ def service_catalog_list(servicename,region,new_path=''):
 
     if 'region' in kwargs:
         del kwargs['region']
-    return sugarcoat.api.filters.display_json(response=flask.g.api_response, new_path=new_path, tenant_id=flask.g.user_info.tenant_id, template_kwargs=template_kwargs, region=region, **kwargs)
-
+    return sugarcoat.api.filters.display_json(response=flask.g.api_response, tenant_id=flask.g.user_info.tenant_id,
+                                              template_kwargs=template_kwargs, region=region, **kwargs)
 
 
 @app.route('/auth_token')
@@ -110,6 +114,7 @@ def refresh_auth_fn():
     flask.session['user_info'] = flask.g.user_info.refresh_auth()
     return flask.redirect('/')
 
+
 @app.route('/logout', methods=['GET'])
 def logout_fn():
     # Here we use a class of some kind to represent and validate our
@@ -123,20 +128,6 @@ def logout_fn():
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = sugarcoat.api.base.LoginForm(prefix='login')
-    if form.validate_on_submit():
-        # Login and validate the user.
-        # user should be an instance of your `User` class
-        local_ident = sugarcoat.api.base.LoginUser(form.username.data, form.password.data)
-        if local_ident.token:
-            flask.session['user_info'] = local_ident.auth_payload
-
-            flask.flash('Logged in successfully.')
-
-            next_url = flask.request.args.get('next')
-            return flask.redirect(next_url or flask.url_for('index'))
-        else:
-            flask.flash('Invalid login.')
-
     template_info = dict()
     template_info['message'] = ''
     template_info['form'] = form

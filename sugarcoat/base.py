@@ -129,7 +129,8 @@ class APIResult(dict):
             resource_name = url_info[2]
 
             if '_UNDEFINED' not in url:
-                self.add_relation(url=url, region=url_kwargs['region'], resource_name=resource_name, resource_type=resource_type)
+                self.add_relation(url=url, region=url_kwargs['region'], resource_name=resource_name,
+                                  resource_type=resource_type)
 
         return
 
@@ -164,7 +165,8 @@ class APIBase(object):
         end_time = time.time()
         json_result = None
         if issubclass(self.result_class, APIResult):
-            json_result = self.result_class(result, response_time=end_time-start_time, identity_obj=self._identity, region=region)
+            json_result = self.result_class(result, response_time=end_time-start_time, identity_obj=self._identity,
+                                            region=region)
             json_result.add_relation_urls(self, region, self._identity.tenant_id)
 
         return json_result
@@ -181,7 +183,6 @@ class APIBase(object):
             kwargs['headers'].update(kwargs['additional_headers'])
             del kwargs['additional_headers']
 
-
         return getattr(requests, method.lower())(**kwargs)
 
     @classmethod
@@ -192,12 +193,11 @@ class APIBase(object):
     def token(self):
         return self._identity.token
 
-    def public_endpoint_urls(self, region=None, version=None):
+    def public_endpoint_urls(self, region=None):
         result = self._identity.service_catalog(name=self.catalog_key,
                                                 region=region)
         return [endpoint.get('publicURL') for endpoint in
                 result[0]['endpoints']]
-
 
     def get_api_resource(self, region=None, initial_url_append=None, data_object=None, **kwargs):
         region_url = self.public_endpoint_urls(region=region)[0]
@@ -213,7 +213,6 @@ class APIBase(object):
             return data_object(result)
 
         return result
-
 
     @classmethod
     def available_urls(cls):
@@ -235,7 +234,6 @@ class APIBase(object):
 
         return {'populated': populate}
 
-
     def get_relation_urls(self):
         result_list = list()
 
@@ -245,8 +243,8 @@ class APIBase(object):
             for possible_url in rel_class.available_urls():
                 for kwarg_id in orig_common_ids:
                     if '{'+kwarg_id+'}' in possible_url:
-                        print((base_url + possible_url,rel_class,kwarg_id))
-                        result_list.append((base_url + possible_url,rel_class,kwarg_id))
+                        print((base_url + possible_url, rel_class, kwarg_id))
+                        result_list.append((base_url + possible_url, rel_class, kwarg_id))
 
         return result_list
 
@@ -263,3 +261,6 @@ class APIBase(object):
     @classmethod
     def get_catalog_api(cls, *args, **kwargs):
         return None
+
+    def get_identity(self):
+        return self._identity

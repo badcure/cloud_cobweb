@@ -1,7 +1,7 @@
 import sugarcoat.rackspace_api.base
 
 
-class OrachastrationResult(sugarcoat.rackspace_api.base.RackAPIResult):
+class OrchestrationResult(sugarcoat.rackspace_api.base.RackAPIResult):
 
     def get_resources(self):
         result = dict()
@@ -54,7 +54,6 @@ class BackupResult(sugarcoat.rackspace_api.base.RackAPIResult):
                 if 'SourceMachineAgentId' in entry:
                     result['machine_agent_id'] = entry['SourceMachineAgentId']
 
-
         return result
 
 
@@ -77,7 +76,7 @@ class ServerResult(sugarcoat.rackspace_api.base.RackAPIResult):
 class ServersAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudServersOpenStack'
     url_kwarg_list = ('server_id', 'flavor_id', 'attachment_id', 'image_id', 'metadata_key', 'server_uri',
-                       'flavor_class', 'server_request_id', 'user_id')
+                      'flavor_class', 'server_request_id', 'user_id')
     result_class = ServerResult
 
     @classmethod
@@ -108,7 +107,8 @@ class ServersAPI(sugarcoat.rackspace_api.base.RackAPI):
 
 class FeedsAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudFeeds'
-    url_kwarg_list = ('server_id', 'entity_id', 'user_id', 'container_name', 'machine_agent_id', 'username', 'load_balancer_id')
+    url_kwarg_list = ('server_id', 'entity_id', 'user_id', 'container_name', 'machine_agent_id', 'username',
+                      'load_balancer_id')
     _accept_header_json = 'application/vnd.rackspace.atom+json'
 
     @classmethod
@@ -154,7 +154,7 @@ class MonitoringAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudMonitoring'
     only_region = 'all'
     url_kwarg_list = ('entity_id', 'check_id', 'metric_name', 'check_type_id', 'monitoring_zone_id', 'alarm_id',
-                       'notification_plan_id', 'notification_id', 'alarm_example_id', 'suppession_id', 'server_uri')
+                      'notification_plan_id', 'notification_id', 'alarm_example_id', 'suppression_id', 'server_uri')
     result_class = MonitoringResult
 
     @classmethod
@@ -191,7 +191,7 @@ class MonitoringAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list.append('/alarm_examples')
         url_list.append('/alarm_examples/{alarm_example_id}')
         url_list.append('/suppression_logs')
-        url_list.append('/suppressions/{suppession_id}')
+        url_list.append('/suppressions/{suppression_id}')
         return url_list
 
     @classmethod
@@ -212,10 +212,11 @@ class MonitoringAPI(sugarcoat.rackspace_api.base.RackAPI):
         return result
 
 
-class OrchastrationAPI(sugarcoat.rackspace_api.base.RackAPI):
+class OrchestrationAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudOrchestration'
-    url_kwarg_list = ('stack_name', 'stack_id', 'heat_resource_name', 'heat_event_id', 'heat_resource_type', 'server_id')
-    result_class = OrachastrationResult
+    url_kwarg_list = ('stack_name', 'stack_id', 'heat_resource_name', 'heat_event_id', 'heat_resource_type',
+                      'server_id')
+    result_class = OrchestrationResult
 
     @classmethod
     def available_urls(cls):
@@ -235,7 +236,6 @@ class OrchastrationAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}/events​')
         url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}/events/{heat_event_id}')
         url_list.append('/build_info')
-
 
         return url_list
 
@@ -307,27 +307,28 @@ class CloudImages(sugarcoat.rackspace_api.base.RackAPI):
 
 class CloudServersFirstGenAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudServers'
-    url_kwarg_list = ('firstgen_id', 'firstgen_image_id', 'firstgen_ip_group_id')
+    url_kwarg_list = ('first_gen_id', 'first_gen_image_id', 'first_gen_ip_group_id')
     only_region = 'all'
+
     @classmethod
     def available_urls(cls):
         url_list = list()
         url_list.append('/')
         url_list.append('/servers')
         url_list.append('/servers/detail')
-        url_list.append('/servers/{firstgen_id}')
-        url_list.append('/servers/{firstgen_id}/ips')
-        url_list.append('/servers/{firstgen_id}/ips/public')
-        url_list.append('/servers/{firstgen_id}/ips/private')
+        url_list.append('/servers/{first_gen_id}')
+        url_list.append('/servers/{first_gen_id}/ips')
+        url_list.append('/servers/{first_gen_id}/ips/public')
+        url_list.append('/servers/{first_gen_id}/ips/private')
         url_list.append('/flavors')
         url_list.append('/flavors/detail')
         url_list.append('/images')
         url_list.append('/images/detail')
-        url_list.append('/images/{firstgen_image_id}')
-        url_list.append('/servers/{firstgen_id}/backup_schedule')
+        url_list.append('/images/{first_gen_image_id}')
+        url_list.append('/servers/{first_gen_id}/backup_schedule')
         url_list.append('/shared_ip_groups')
         url_list.append('/shared_ip_groups/detail')
-        url_list.append('/shared_ip_groups/{firstgen_ip_group_id}')
+        url_list.append('/shared_ip_groups/{first_gen_ip_group_id}')
 
         return url_list
 
@@ -390,7 +391,8 @@ class CloudLoadBalancersAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list.append('/loadbalancers/{load_balancer_id}/metadata')
         url_list.append('/loadbalancers/{load_balancer_id}/metadata/{load_balancer_meta_id}')
         url_list.append('/loadbalancers/{load_balancer_id}/nodes/{load_balancer_node_id}/metadata')
-        url_list.append('/loadbalancers/{load_balancer_id}/nodes/{load_balancer_node_id}/metadata/{load_balancer_meta_id}')
+        url_list.append('/loadbalancers/{load_balancer_id}/nodes/{load_balancer_node_id}/metadata/'
+                        '{load_balancer_meta_id}')
 
         return url_list
 
@@ -436,14 +438,14 @@ class CloudQueuesAPI(sugarcoat.rackspace_api.base.RackAPI):
 
 class CloudBigDataAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudBigData'
-    url_kwarg_list = ('bigdata_cred_type', 'distro_id', 'stack_id', 'cluster_id')
+    url_kwarg_list = ('big_data_cred_type', 'distro_id', 'stack_id', 'cluster_id')
 
     @classmethod
     def available_urls(cls):
         url_list = list()
         url_list.append('/')
         url_list.append('/credentials')
-        url_list.append('/credentials/{bigdata_cred_type}')
+        url_list.append('/credentials/{big_data_cred_type}')
         url_list.append('/distros')
         url_list.append('/distros/{distro_id}')
         url_list.append('/stacks')
@@ -508,6 +510,3 @@ def get_catalog_api(catalog_key):
         if possible_class.catalog_key == catalog_key:
             return possible_class
     return None
-
-
-

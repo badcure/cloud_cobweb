@@ -4,7 +4,7 @@
 
 {% block header_body %}
     {% if g.user_info %}
-        <span class="auth_expiretime">Expires in :</span>
+        <span class="auth_expire_time">Expires in :</span>
         {% if g.user_info.token_seconds_left <= 0 %}
         Auth as expired
         {% else %}
@@ -19,10 +19,10 @@
         <br>
 
         <div class="auth_token">
-            See complete auth <a href="/auth_token">here</a><br>
+            See complete auth <a href="{{ url_for('auth_token_view')  }}">here</a><br>
         </div>
         <div class="refresh_token">
-            <a href="/refresh_auth">Refresh auth info</a><br>
+            <a href="{% url_for('refresh_auth_fn') %}">Refresh auth info</a><br>
         </div>
     {%  else %}
         No info, need to log in.
@@ -34,7 +34,7 @@
     <div id="complete_service_catalog">
         <h2> Identity </h2>
         {% if not g.user_info.token %}
-            <form method="POST" action="/cloudIdentity/all/tokens">
+            <form method="POST" action="{{ url_for('identity_request', "tokens") }}">
             {{ form.hidden_tag() }}
 
             {% for field in form %}
@@ -48,21 +48,19 @@
         <h2>Service Catalog</h2>
         <ul>
             {% for role in g.user_info.service_catalog_list %}
-            <div id="catalog_{{role.name}}">
-                <li>
-                    {{ role.name }}
-                    <ul>
-                        {% for endpoint in role.endpoints %}
-                        {% if endpoint.region %}
-                        <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
-                            {% else %}
-                        <li> Region global - {{endpoint.publicURL}} - <a href="/{{role.name}}/all">Show</a>
+            <li id="catalog_{{role.name}}">
+                {{ role.name }}
+                <ul>
+                    {% for endpoint in role.endpoints %}
+                    {% if endpoint.region %}
+                    <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
+                        {% else %}
+                    <li> Region global - {{endpoint.publicURL}} - <a href="/{{role.name}}/all">Show</a>
 
-                            {% endif %}
-                            {% endfor %}
-                    </ul>
-                </li>
-            </div>
+                        {% endif %}
+                        {% endfor %}
+                </ul>
+            </li>
             {% endfor %}
         </ul>
     </div>

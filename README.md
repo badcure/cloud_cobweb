@@ -6,9 +6,9 @@ To run, simply:
     apt-get install python3-setuptools
     python3 setup.py install
 
-Uwsgi
+uwsgi
 
-    [uwsig]
+    [uwsgi]
     autoload = true
     master = true
     workers = 2

@@ -41,10 +41,10 @@
 <h1>{{ json_result.method }} - Request</h1>
 <div class="json_display"><pre id="request_code">{{ json_result.request_headers|print_headers }}</pre></div>
 <h1>Request Body{% if not json_result.request_body %} - Empty{% endif %}</h1>
-<div class="json_display"><pre id="response_code">{{ json_result.request_body }}</pre></div>
+<div class="json_display"><pre class="response_code">{{ json_result.request_body }}</pre></div>
 
     <h1>Response</h1>
-<div class="json_display"><pre id="response_code">{{ json_result.response_headers|print_headers }}</pre></div>
+<div class="json_display"><pre class="response_code">{{ json_result.response_headers|print_headers }}</pre></div>
 <h1>Data - {{ json_result.result_type }}</h1>
     {% if json_result.safe_html %}
         <div class="json_display"><pre id="display_code">{{ json_result.display_with_relation|convert_to_urls|safe }}</pre></div>
