@@ -305,6 +305,47 @@ class CloudImages(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
+class CloudMetricsAPI(sugarcoat.rackspace_api.base.RackAPI):
+    catalog_key = 'cloudMetrics'
+    url_kwarg_list = ('metric_name', )
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/')
+        url_list.append('/views/{metric_name}')
+        url_list.append('/views')
+        url_list.append('/views/metrics/search')
+        url_list.append('/limits')
+
+        return url_list
+
+
+class CloudDNSAPI(sugarcoat.rackspace_api.base.RackAPI):
+    catalog_key = 'cloudDNS'
+    url_kwarg_list = ('clouddns_limit_type', 'clouddns_domain_id', 'clouddns_record_id', 'clouddns_service_name')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/')
+        url_list.append('/limits')
+        url_list.append('/limits/types')
+        url_list.append('/limits/{clouddns_limit_type}')
+        url_list.append('/domains')
+        url_list.append('/domains/search​')
+        url_list.append('/domains/{clouddns_domain_id}')
+        url_list.append('/domains/{clouddns_domain_id}/export')
+        url_list.append('/domains/{clouddns_domain_id}/subdomains')
+        url_list.append('/domains/{clouddns_domain_id}/records')
+        url_list.append('/domains/{clouddns_domain_id}/records/{clouddns_record_id}')
+        url_list.append('/rdns/{clouddns_service_name}​')
+        url_list.append('/rdns/{clouddns_service_name}/{clouddns_record_id}')
+
+
+        return url_list
+
+
 class CloudServersFirstGenAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudServers'
     url_kwarg_list = ('first_gen_id', 'first_gen_image_id', 'first_gen_ip_group_id')
@@ -459,6 +500,77 @@ class CloudBigDataAPI(sugarcoat.rackspace_api.base.RackAPI):
 
         return url_list
 
+
+class AutoscaleAPI(sugarcoat.rackspace_api.base.RackAPI):
+    catalog_key = 'autoscale'
+    url_kwarg_list = ('autoscale_group_id', 'autoscale_policy_id', 'autoscale_webhook_id', 'cluster_id')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/')
+        url_list.append('/groups')
+        url_list.append('/groups/{autoscale_group_id}/config')
+        url_list.append('/groups/{autoscale_group_id}')
+        url_list.append('/groups/{autoscale_group_id}/state')
+        url_list.append('/groups/{autoscale_group_id}/launch')
+        url_list.append('/groups/{autoscale_group_id}/policies')
+        url_list.append('/groups/{autoscale_group_id}/policies/{autoscale_policy_id}')
+        url_list.append('/groups/{autoscale_group_id}/policies/{autoscale_policy_id}/webhooks')
+        url_list.append('/groups/{autoscale_group_id}/policies/{autoscale_policy_id}/webhooks/{autoscale_webhook_id}')
+
+        return url_list
+
+
+class CloudDatabasesAPI(sugarcoat.rackspace_api.base.RackAPI):
+    catalog_key = 'cloudDatabases'
+    url_kwarg_list = ('clouddatabase_instance_id', 'clouddatabase_username', 'clouddatabase_flavor_id',
+                      'clouddatabase_datastore_type', 'clouddatabase_datastore_version_id', 'clouddatabase_backup_id',
+                      'clouddatabase_ha_id', 'clouddatabase_schedule_id', 'clouddatabase_config_id',
+                      'clouddatabase_parameter_id')
+
+    @classmethod
+    def available_urls(cls):
+        url_list = list()
+        url_list.append('/')
+        url_list.append('/instances​')
+        url_list.append('/instances/{clouddatabase_instance_id}')
+        url_list.append('/instances/{clouddatabase_instance_id}/configuration')
+        url_list.append('/instances/{clouddatabase_instance_id}/root')
+        url_list.append('/instances/{clouddatabase_instance_id}/databases')
+        url_list.append('/instances/{clouddatabase_instance_id}/users')
+        url_list.append('/instances/{clouddatabase_instance_id}/users/{clouddatabase_username}')
+        url_list.append('/instances/{clouddatabase_instance_id}/users/{clouddatabase_username}/databases')
+        url_list.append('/datastores/{clouddatabase_datastore_type}/versions/{clouddatabase_datastore_version_id}/'
+                        'flavors')
+        url_list.append('/backups​')
+        url_list.append('/backups/{clouddatabase_backup_id}')
+        url_list.append('/instances/{clouddatabase_instance_id}/backups')
+        url_list.append('/schedules')
+        url_list.append('/schedules/{clouddatabase_schedule_id}')
+        url_list.append('/ha/{clouddatabase_ha_id}/backups')
+        url_list.append('/instances/{clouddatabase_instance_id}/replicas')
+        url_list.append('/ha')
+        url_list.append('/ha/{clouddatabase_ha_id}')
+        url_list.append('/ha/{clouddatabase_ha_id}/acls')
+        url_list.append('/configurations')
+        url_list.append('/configurations/{clouddatabase_config_id}')
+        url_list.append('/configurations/{clouddatabase_config_id}/instances')
+        url_list.append('/datastores/{clouddatabase_datastore_type}/versions/{clouddatabase_datastore_version_id}/'
+                        'parameters')
+        url_list.append('/datastores/{clouddatabase_datastore_type}/versions/{clouddatabase_datastore_version_id}/'
+                        'parameters/{clouddatabase_parameter_id}')
+        url_list.append('/datastores/versions/{clouddatabase_datastore_version_id}/parameters')
+        url_list.append('/datastores/versions/{clouddatabase_datastore_version_id}/parameters/'
+                        '{clouddatabase_parameter_id}')
+        url_list.append('/datastors/version/{clouddatabase_datastore_version_id}/configuration/'
+                        '{clouddatabase_flavor_id}')
+        url_list.append('/datastores')
+        url_list.append('/datastores/{clouddatabase_datastore_type}')
+        url_list.append('/datastores/{clouddatabase_datastore_type}/versions')
+        url_list.append('/datastores/{clouddatabase_datastore_type}/versions/{clouddatabase_datastore_version_id}')
+
+        return url_list
 
 class IdentityAPI(sugarcoat.rackspace_api.base.RackAPI):
     catalog_key = 'cloudIdentity'

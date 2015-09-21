@@ -22,7 +22,7 @@
             See complete auth <a href="{{ url_for('auth_token_view')  }}">here</a><br>
         </div>
         <div class="refresh_token">
-            <a href="{% url_for('refresh_auth_fn') %}">Refresh auth info</a><br>
+            <a href="{{ url_for('refresh_auth_fn') }}">Refresh auth info</a><br>
         </div>
     {%  else %}
         No info, need to log in.
@@ -34,7 +34,7 @@
     <div id="complete_service_catalog">
         <h2> Identity </h2>
         {% if not g.user_info.token %}
-            <form method="POST" action="{{ url_for('identity_request', "tokens") }}">
+            <form method="POST" action="{{ url_for('identity_request', new_path="tokens") }}">
             {{ form.hidden_tag() }}
 
             {% for field in form %}
