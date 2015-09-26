@@ -221,11 +221,11 @@ class OrchestrationAPI(sugarcoat.rackspace_api.base.RackAPI):
     @classmethod
     def available_urls(cls):
         url_list = list()
-        url_list.append('/stacks​')
+        url_list.append('/stacks/')
         url_list.append('/stacks/{stack_name}')
         url_list.append('/stacks/{stack_name}/{stack_id}')
         url_list.append('/stacks/{stack_name}/resources')
-        url_list.append('/stacks/{stack_name}/{stack_id}/resources​')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources')
         url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}')
         url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}/metadata')
         url_list.append('/resource_types')
@@ -233,7 +233,7 @@ class OrchestrationAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list.append('/resource_types/{heat_resource_type}/template')
         url_list.append('/stacks/{stack_name}/events')
         url_list.append('/stacks/{stack_name}/{stack_id}/events')
-        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}/events​')
+        url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}/events')
         url_list.append('/stacks/{stack_name}/{stack_id}/resources/{heat_resource_name}/events/{heat_event_id}')
         url_list.append('/build_info')
 
@@ -247,7 +247,7 @@ class CloudFilesAPI(sugarcoat.rackspace_api.base.RackAPI):
     @classmethod
     def available_urls(cls):
         url_list = list()
-        url_list.append('/​')
+        url_list.append('/')
         url_list.append('/{container_name}')
         url_list.append('/{container_name}/{object}')
         return url_list
@@ -260,7 +260,7 @@ class CloudFilesCDNAPI(sugarcoat.rackspace_api.base.RackAPI):
     @classmethod
     def available_urls(cls):
         url_list = list()
-        url_list.append('/​')
+        url_list.append('/')
         return url_list
 
 
@@ -381,7 +381,7 @@ class CloudSitesAPI(sugarcoat.rackspace_api.base.RackAPI):
     @classmethod
     def available_urls(cls):
         url_list = list()
-        url_list.append('/​')
+        url_list.append('/')
         return url_list
 
 
@@ -392,8 +392,8 @@ class CloudNetworksAPI(sugarcoat.rackspace_api.base.RackAPI):
     @classmethod
     def available_urls(cls):
         url_list = list()
-        url_list.append('/​')
-        url_list.append('/networks​')
+        url_list.append('/')
+        url_list.append('/networks')
         url_list.append('/subnets')
         url_list.append('/ports')
         return url_list
@@ -407,7 +407,7 @@ class CloudLoadBalancersAPI(sugarcoat.rackspace_api.base.RackAPI):
     @classmethod
     def available_urls(cls):
         url_list = list()
-        url_list.append('/​')
+        url_list.append('/')
         url_list.append('/loadbalancers')
         url_list.append('/loadbalancers/{load_balancer_id}')
         url_list.append('/loadbalancers/{load_balancer_id}/errorpage')
@@ -417,9 +417,9 @@ class CloudLoadBalancersAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list.append('/loadbalancers/{load_balancer_id}/virtualips')
         url_list.append('/loadbalancers/alloweddomains')
         url_list.append('/loadbalancers/{load_balancer_id}/usage')
-        url_list.append('/loadbalancers/usage​')
+        url_list.append('/loadbalancers/usage')
         url_list.append('/loadbalancers/{load_balancer_id}/usage/current')
-        url_list.append('/loadbalancers/billable​')
+        url_list.append('/loadbalancers/billable')
         url_list.append('/loadbalancers/{load_balancer_id}/accesslist')
         url_list.append('/loadbalancers/{load_balancer_id}/healthmonitor')
         url_list.append('/loadbalancers/{load_balancer_id}/sessionpersistence')
@@ -447,11 +447,11 @@ class CloudBlockStorageAPI(sugarcoat.rackspace_api.base.RackAPI):
         url_list = list()
         url_list.append('/volumes')
         url_list.append('/volumes/detail')
-        url_list.append('/volumes/{volume_id}​')
-        url_list.append('/types​')
+        url_list.append('/volumes/{volume_id}')
+        url_list.append('/types')
         url_list.append('/types/{volume_type_id}')
-        url_list.append('/snapshots​')
-        url_list.append('/snapshots/detail​')
+        url_list.append('/snapshots')
+        url_list.append('/snapshots/detail')
         url_list.append('/snapshots/{snapshot_id}')
         url_list.append('/snapshots/{snapshot_id}/metadata')
 
@@ -466,11 +466,11 @@ class CloudQueuesAPI(sugarcoat.rackspace_api.base.RackAPI):
     def available_urls(cls):
         url_list = list()
         url_list.append('/')
-        url_list.append('/queues​')
+        url_list.append('/queues')
         url_list.append('/queues/{queue_name}')
         url_list.append('/queues/{queue_name}/metadata')
         url_list.append('/queues/{queue_name}/stats')
-        url_list.append('/queues/{queue_name}/messages​')
+        url_list.append('/queues/{queue_name}/messages')
         url_list.append('/queues/{queue_name}/messages/{message_id}')
         url_list.append('/queues/{queue_name}/claims/{claim_id}')
 
@@ -581,23 +581,20 @@ class IdentityAPI(sugarcoat.rackspace_api.base.RackAPI):
     @classmethod
     def available_urls(cls):
         url_list = list()
-        url_list.append('/​')
-        url_list.append('/OS-KSADM/roles​')
-        url_list.append('/OS-KSADM/roles/{identity_role_id}​')
-        url_list.append('/users/{user_id}/roles​')
+        url_list.append('/')
+        url_list.append('/OS-KSADM/roles')
+        url_list.append('/OS-KSADM/roles/{identity_role_id}')
+        url_list.append('/users/{user_id}/roles')
         url_list.append('/tokens/{identity_token_id}')
-        url_list.append('/RAX-AUTH/domains​')
+        url_list.append('/RAX-AUTH/domains')
         url_list.append('/RAX-AUTH/domains/{identity_domain_id}')
-        url_list.append('/RAX-AUTH/secretqa/questions​')
-        url_list.append('/extensions​')
-        url_list.append('/extensions/{identity_alias}​')
-        url_list.append('/users​​')
+        url_list.append('/RAX-AUTH/secretqa/questions')
+        url_list.append('/extensions')
+        url_list.append('/extensions/{identity_alias}')
+        url_list.append('/users')
         url_list.append('/users/{user_id}')
-        url_list.append('/users/{user_id}/RAX-AUTH/admins​')
+        url_list.append('/users/{user_id}/RAX-AUTH/admins')
         url_list.append('/users/{user_id}/OS-KSADM/credentials/')
-        url_list.append('/​')
-        url_list.append('/​')
-        url_list.append('/​')
         return url_list
 
     def get_api_resource(self, region=None, initial_url_append=None, data_object=None, **kwargs):
