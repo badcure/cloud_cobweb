@@ -3,9 +3,9 @@ import string
 import flask_wtf
 import wtforms
 
-import sugarcoat.rackspace_cloud.services
+import sugarcoat.rackspacecloud.services
 import sugarcoat.api.base
-import sugarcoat.rackspace_cloud.base
+import sugarcoat.rackspacecloud.base
 
 
 app = flask.Blueprint('rackspacecloud', __name__, url_prefix='/rackspacecloud')
@@ -30,7 +30,7 @@ def display_json(response, region, template_kwargs=None, **kwargs):
         template_kwargs = dict()
 
     try:
-        if isinstance(response, sugarcoat.rackspace_cloud.base.RackAPIResult):
+        if isinstance(response, sugarcoat.rackspacecloud.base.RackAPIResult):
             for mime_type, priority in flask.request.accept_mimetypes:
                 if mime_type == 'text/html':
                     return flask.Response(flask.render_template(
@@ -46,9 +46,9 @@ def display_json(response, region, template_kwargs=None, **kwargs):
 # noinspection PyUnusedLocal
 @app.before_request
 def before_request(*args, **kwargs):
-    flask.g.user_info = sugarcoat.rackspace_cloud.base.Identity()
+    flask.g.user_info = sugarcoat.rackspacecloud.base.Identity()
     if 'user_info' in flask.session:
-        flask.g.user_info = sugarcoat.rackspace_cloud.base.Identity(auth_info=flask.session['user_info'])
+        flask.g.user_info = sugarcoat.rackspacecloud.base.Identity(auth_info=flask.session['user_info'])
 
 
     flask.g.api_response = None
@@ -77,7 +77,7 @@ def identity_request(new_path=''):
             new_header = '_'.join(query_name.split('_')[2:])
             additional_headers[new_header] = query_value
 
-    flask.g.list_obj = sugarcoat.rackspace_cloud.services.IdentityAPI(flask.g.user_info)
+    flask.g.list_obj = sugarcoat.rackspacecloud.services.IdentityAPI(flask.g.user_info)
     query_args = ''
     new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
 
@@ -109,7 +109,7 @@ def identity_request(new_path=''):
         flask.g.api_response['request_body'] = flask.g.api_response['request_body'].replace('"'+form.password.data+'"', '"<masked>"')
         if flask.g.api_response['status_code'] == 200:
             flask.session['user_info'] = flask.g.api_response['result']
-            flask.g.user_info = sugarcoat.rackspace_cloud.base.Identity(flask.session['user_info'])
+            flask.g.user_info = sugarcoat.rackspacecloud.base.Identity(flask.session['user_info'])
     kwargs = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'], region='all')
 
     if 'region' in kwargs:
@@ -121,7 +121,7 @@ def identity_request(new_path=''):
 @app.route('/<string:servicename>/<string:region>/')
 @app.route('/<string:servicename>/<string:region>/<path:new_path>')
 def service_catalog_list(servicename,region,new_path=''):
-    flask.g.list_obj = sugarcoat.rackspace_cloud.services.get_catalog_api(servicename)(flask.g.user_info)
+    flask.g.list_obj = sugarcoat.rackspacecloud.services.get_catalog_api(servicename)(flask.g.user_info)
     query_args = ''
     new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
 

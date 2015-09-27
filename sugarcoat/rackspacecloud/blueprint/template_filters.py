@@ -1,10 +1,10 @@
 import pprint
-import sugarcoat.rackspace_cloud.blueprint
-import sugarcoat.rackspace_cloud.base
+import sugarcoat.rackspacecloud.blueprint
+import sugarcoat.rackspacecloud.base
 import re
 import flask
 
-@sugarcoat.rackspace_cloud.blueprint.base.app.template_filter('print_headers')
+@sugarcoat.rackspacecloud.blueprint.base.app.template_filter('print_headers')
 def print_headers(obj):
     result = ''
     for key, value in obj.items():
@@ -12,7 +12,7 @@ def print_headers(obj):
     return result
 
 
-@sugarcoat.rackspace_cloud.blueprint.base.app.template_filter('convert_to_urls')
+@sugarcoat.rackspacecloud.blueprint.base.app.template_filter('convert_to_urls')
 def convert_to_urls(result):
     if not isinstance(result, str):
         result = str(pprint.pformat(result))
