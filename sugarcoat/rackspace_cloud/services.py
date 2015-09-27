@@ -1,7 +1,7 @@
-import sugarcoat.rackspace_api.base
+import sugarcoat.rackspace_cloud.base
 
 
-class OrchestrationResult(sugarcoat.rackspace_api.base.RackAPIResult):
+class OrachastrationResult(sugarcoat.rackspace_cloud.base.RackAPIResult):
 
     def get_resources(self):
         result = dict()
@@ -12,7 +12,7 @@ class OrchestrationResult(sugarcoat.rackspace_api.base.RackAPIResult):
         return result
 
 
-class MonitoringResult(sugarcoat.rackspace_api.base.RackAPIResult):
+class MonitoringResult(sugarcoat.rackspace_cloud.base.RackAPIResult):
 
     def get_resources(self):
         result = dict()
@@ -34,12 +34,12 @@ class MonitoringResult(sugarcoat.rackspace_api.base.RackAPIResult):
         return result
 
 
-class LoadBalancerResult(sugarcoat.rackspace_api.base.RackAPIResult):
+class LoadBalancerResult(sugarcoat.rackspace_cloud.base.RackAPIResult):
 
     pass
 
 
-class BackupResult(sugarcoat.rackspace_api.base.RackAPIResult):
+class BackupResult(sugarcoat.rackspace_cloud.base.RackAPIResult):
 
     def get_resources(self):
         result = dict()
@@ -57,7 +57,7 @@ class BackupResult(sugarcoat.rackspace_api.base.RackAPIResult):
         return result
 
 
-class ServerResult(sugarcoat.rackspace_api.base.RackAPIResult):
+class ServerResult(sugarcoat.rackspace_cloud.base.RackAPIResult):
 
     def get_resources(self):
         result = dict()
@@ -73,7 +73,7 @@ class ServerResult(sugarcoat.rackspace_api.base.RackAPIResult):
         return result
 
 
-class ServersAPI(sugarcoat.rackspace_api.base.RackAPI):
+class ServersAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudServersOpenStack'
     url_kwarg_list = ('server_id', 'flavor_id', 'attachment_id', 'image_id', 'metadata_key', 'server_uri',
                       'flavor_class', 'server_request_id', 'user_id')
@@ -105,7 +105,7 @@ class ServersAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class FeedsAPI(sugarcoat.rackspace_api.base.RackAPI):
+class FeedsAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudFeeds'
     url_kwarg_list = ('server_id', 'entity_id', 'user_id', 'container_name', 'machine_agent_id', 'username',
                       'load_balancer_id')
@@ -124,7 +124,7 @@ class FeedsAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class BackupAPI(sugarcoat.rackspace_api.base.RackAPI):
+class BackupAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudBackup'
     url_kwarg_list = ('server_id', 'restore_id', 'machine_agent_id', 'backup_configuration_id', 'backup_id')
     result_class = BackupResult
@@ -150,7 +150,7 @@ class BackupAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class MonitoringAPI(sugarcoat.rackspace_api.base.RackAPI):
+class MonitoringAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudMonitoring'
     only_region = 'all'
     url_kwarg_list = ('entity_id', 'check_id', 'metric_name', 'check_type_id', 'monitoring_zone_id', 'alarm_id',
@@ -212,11 +212,11 @@ class MonitoringAPI(sugarcoat.rackspace_api.base.RackAPI):
         return result
 
 
-class OrchestrationAPI(sugarcoat.rackspace_api.base.RackAPI):
+class OrchastrationAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudOrchestration'
     url_kwarg_list = ('stack_name', 'stack_id', 'heat_resource_name', 'heat_event_id', 'heat_resource_type',
                       'server_id')
-    result_class = OrchestrationResult
+    result_class = OrachastrationResult
 
     @classmethod
     def available_urls(cls):
@@ -240,7 +240,7 @@ class OrchestrationAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class CloudFilesAPI(sugarcoat.rackspace_api.base.RackAPI):
+class CloudFilesAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudFiles'
     url_kwarg_list = ('container_name', 'object')
 
@@ -253,7 +253,7 @@ class CloudFilesAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class CloudFilesCDNAPI(sugarcoat.rackspace_api.base.RackAPI):
+class CloudFilesCDNAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudFilesCDN'
     url_kwarg_list = ()
 
@@ -264,7 +264,7 @@ class CloudFilesCDNAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class RackspaceCDNAPI(sugarcoat.rackspace_api.base.RackAPI):
+class RackspaceCDNAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'rackCDN'
     url_kwarg_list = ('flavor_id',)
     only_region = 'DFW'
@@ -281,7 +281,7 @@ class RackspaceCDNAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class CloudImages(sugarcoat.rackspace_api.base.RackAPI):
+class CloudImages(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudImages'
     url_kwarg_list = ('image_id', 'member_id', 'task_id')
 
@@ -374,7 +374,7 @@ class CloudServersFirstGenAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class CloudSitesAPI(sugarcoat.rackspace_api.base.RackAPI):
+class CloudSitesAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudSites'
     url_kwarg_list = ()
 
@@ -385,7 +385,7 @@ class CloudSitesAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class CloudNetworksAPI(sugarcoat.rackspace_api.base.RackAPI):
+class CloudNetworksAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudNetworks'
     url_kwarg_list = ()
 
@@ -399,7 +399,7 @@ class CloudNetworksAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class CloudLoadBalancersAPI(sugarcoat.rackspace_api.base.RackAPI):
+class CloudLoadBalancersAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudLoadBalancers'
     url_kwarg_list = ('load_balancer_id', 'load_balancer_node_id', 'load_balancer_meta_id')
     result_class = LoadBalancerResult
@@ -438,7 +438,7 @@ class CloudLoadBalancersAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class CloudBlockStorageAPI(sugarcoat.rackspace_api.base.RackAPI):
+class CloudBlockStorageAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudBlockStorage'
     url_kwarg_list = ('volume_id', 'volume_type_id', 'snapshot_id')
 
@@ -458,7 +458,7 @@ class CloudBlockStorageAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class CloudQueuesAPI(sugarcoat.rackspace_api.base.RackAPI):
+class CloudQueuesAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudQueues'
     url_kwarg_list = ('queue_name', 'message_id', 'claim_id')
 
@@ -477,7 +477,7 @@ class CloudQueuesAPI(sugarcoat.rackspace_api.base.RackAPI):
         return url_list
 
 
-class CloudBigDataAPI(sugarcoat.rackspace_api.base.RackAPI):
+class CloudBigDataAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudBigData'
     url_kwarg_list = ('big_data_cred_type', 'distro_id', 'stack_id', 'cluster_id')
 
@@ -572,7 +572,7 @@ class CloudDatabasesAPI(sugarcoat.rackspace_api.base.RackAPI):
 
         return url_list
 
-class IdentityAPI(sugarcoat.rackspace_api.base.RackAPI):
+class IdentityAPI(sugarcoat.rackspace_cloud.base.RackAPI):
     catalog_key = 'cloudIdentity'
     _base_url = 'https://identity.api.rackspacecloud.com'
     only_region = 'all'
@@ -615,7 +615,7 @@ class IdentityAPI(sugarcoat.rackspace_api.base.RackAPI):
 
 
 def get_catalog_api(catalog_key):
-    for possible_class in sugarcoat.rackspace_api.base.RackAPI.__subclasses__():
+    for possible_class in sugarcoat.rackspace_cloud.base.RackAPI.__subclasses__():
         if possible_class.catalog_key == catalog_key:
             return possible_class
     return None

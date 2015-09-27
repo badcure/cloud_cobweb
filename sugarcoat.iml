@@ -21,6 +21,7 @@
     <option name="TEMPLATE_FOLDERS">
       <list>
         <option value="$MODULE_DIR$/sugarcoat/api/templates" />
+        <option value="$MODULE_DIR$/sugarcoat/api/static" />
       </list>
     </option>
   </component>

@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='rci.css') }}">
+    <link rel="stylesheet" type="text/css" href="/static/rci.css">
+    <script src="{{ url_for('static', filename='jquery-2.1.4.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='display_objects.js') }}"></script>
     <meta charset="UTF-8">
     <title>Homepage</title>
+
 </head>
 <body>
 
@@ -34,5 +37,6 @@
 <div id="bottom">
     {% block bottom_body %}{% endblock %}
 </div>
+
 </body>
 </html>
