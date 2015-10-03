@@ -77,6 +77,8 @@ class APIResult(dict):
 
     def add_relation(self, url, region=None, resource_id=None, resource_name=None, resource_type=None):
         new_url = dict(href=url, rel='rel')
+        print(url)
+        print(region)
         if region and region.lower() != 'all':
             new_url['region'] = region
         if resource_id:
@@ -117,10 +119,15 @@ class APIResult(dict):
 
     def add_relation_urls(self, api_base_obj, region, tenant_id):
         rel_urls = api_base_obj.get_relation_urls()
-        url_kwargs = self.get_resources()
-        url_kwargs['tenant_id'] = tenant_id
+        orig_url_kwargs = self.get_resources()
+        orig_url_kwargs['tenant_id'] = tenant_id
+        print("BEGIN")
+        print(region)
         for index, url_info in enumerate(rel_urls):
+            url_kwargs = copy.deepcopy(orig_url_kwargs)
             url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or region
+            print("REGION")
+            print(url_kwargs['region'])
             try:
                 url = url_info[0].format(**url_kwargs)
             except KeyError:
