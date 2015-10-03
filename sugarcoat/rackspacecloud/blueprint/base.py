@@ -130,9 +130,12 @@ def identity_request(new_path=''):
             }
         }
 
-    flask.g.api_response = flask.g.list_obj.get_api_resource(region='all', initial_url_append='/' + new_path, method=method, data=request_data, additional_headers=additional_headers)
+    flask.g.api_response = flask.g.list_obj.get_api_resource(
+        region='all', initial_url_append='/' + new_path, method=method, data=request_data,
+        additional_headers=additional_headers, show_confidential=flask.request.args.get('show_confidential', False))
     if flask.request.method == 'POST' and form.validate_on_submit():
-        flask.g.api_response['request_body'] = flask.g.api_response['request_body'].replace('"'+form.password.data+'"', '"<masked>"')
+        if not flask.request.args.get('show_confidential', False):
+            flask.g.api_response['request_body'] = flask.g.api_response['request_body'].replace('"'+form.password.data+'"', '"<masked>"')
         if flask.g.api_response['status_code'] == 200:
             flask.session['user_info'] = flask.g.api_response['result']
             flask.g.user_info = sugarcoat.rackspacecloud.base.Identity(flask.session['user_info'])
@@ -156,7 +159,8 @@ def service_catalog_list(servicename,region,new_path=''):
     if query_args:
         query_args = '?'+ query_args[1:]
     new_path += query_args
-    flask.g.api_response = flask.g.list_obj.get_api_resource(region=region, initial_url_append='/' + new_path)
+    flask.g.api_response = flask.g.list_obj.get_api_resource(region=region, initial_url_append='/' + new_path,
+                                                             show_confidential=flask.request.args.get('show_confidential', False))
     kwargs = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'], region=region)
 
     template_kwargs = dict()

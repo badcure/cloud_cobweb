@@ -14,7 +14,7 @@ class APIResult(dict):
     relation_urls = None
 
     def __init__(self, result, request_headers=None, response_headers=None, url=None, status_code=-2,
-                 identity_obj=None, method='Unknown', request_body=None, **kwargs):
+                 identity_obj=None, method='Unknown', request_body=None, show_confidential=False,  **kwargs):
         super().__init__(**kwargs)
         self.relation_urls = list()
         self._identity_obj = identity_obj
@@ -62,11 +62,12 @@ class APIResult(dict):
         self['method'] = method
         self['request_body'] = request_body
 
-        for header_name in MASK_HEADERS:
-            if header_name in self['request_headers']:
-                self['request_headers'][header_name] = '<masked>'
-            if header_name in self['response_headers']:
-                self['response_headers'][header_name] = '<masked>'
+        if not show_confidential:
+            for header_name in MASK_HEADERS:
+                if header_name in self['request_headers']:
+                    self['request_headers'][header_name] = '<masked>'
+                if header_name in self['response_headers']:
+                    self['response_headers'][header_name] = '<masked>'
 
     def pre_html_result(self):
         result = self['result']
@@ -77,8 +78,6 @@ class APIResult(dict):
 
     def add_relation(self, url, region=None, resource_id=None, resource_name=None, resource_type=None):
         new_url = dict(href=url, rel='rel')
-        print(url)
-        print(region)
         if region and region.lower() != 'all':
             new_url['region'] = region
         if resource_id:
@@ -121,13 +120,9 @@ class APIResult(dict):
         rel_urls = api_base_obj.get_relation_urls()
         orig_url_kwargs = self.get_resources()
         orig_url_kwargs['tenant_id'] = tenant_id
-        print("BEGIN")
-        print(region)
         for index, url_info in enumerate(rel_urls):
             url_kwargs = copy.deepcopy(orig_url_kwargs)
             url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or region
-            print("REGION")
-            print(url_kwargs['region'])
             try:
                 url = url_info[0].format(**url_kwargs)
             except KeyError:
@@ -136,8 +131,7 @@ class APIResult(dict):
             resource_name = url_info[2]
 
             if '_UNDEFINED' not in url:
-                self.add_relation(url=url, region=url_kwargs['region'], resource_name=resource_name,
-                                  resource_type=resource_type)
+                self.add_relation(url=url, region=url_kwargs['region'], resource_name=resource_name, resource_type=resource_type)
 
         return
 
@@ -158,7 +152,7 @@ class APIBase(object):
         result = self.display_base_request(**kwargs)
         return result
 
-    def displayable_json_auth_request(self, region=None, **kwargs):
+    def displayable_json_auth_request(self, region=None, show_confidential=False, **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
         kwargs['headers']['X-Auth-Token'] = self.token
         if self._accept_header_json:
@@ -173,7 +167,7 @@ class APIBase(object):
         json_result = None
         if issubclass(self.result_class, APIResult):
             json_result = self.result_class(result, response_time=end_time-start_time, identity_obj=self._identity,
-                                            region=region)
+                                            region=region, show_confidential=show_confidential)
             json_result.add_relation_urls(self, region, self._identity.tenant_id)
 
         return json_result
