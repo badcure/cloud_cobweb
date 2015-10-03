@@ -23,10 +23,10 @@
         <br>
 
         <div class="auth_token">
-            See complete auth <a href="/auth_token">here</a><br>
+            See complete auth <a href="{{ url_for("rackspacecloud.auth_token_view") }}">here</a><br>
         </div>
         <div class="refresh_token">
-            <a href="/refresh_auth">Refresh auth info</a><br>
+            <a href="{{ url_for("rackspacecloud.refresh_auth_fn") }}">Refresh auth info</a><br>
         </div>
     {%  endif %}
 
@@ -53,24 +53,60 @@ Content-Type: application/json</pre>
         {% else %}
         <h2>Rackspace Services</h2>
         <ul>
+            <table>
+            <thead><tr><th>Service Name</th><th>DFW</th><th>IAD</th><th>ORD</th><th>LON</th><th>HKG</th><th>SYD</th></tr></thead>
+            <tbody>
+
             {% for role in g.user_info.service_catalog_list %}
-            <div id="catalog_{{role.name}}">
+                {% set service_urls = {} %}
 
-                <li>
+                {% for endpoint in role.endpoints %}
+                    {% if not endpoint.region %}
+                        {% do service_urls.update({'global': endpoint.publicURL})  %}
+                    {% else %}
+                        {% do service_urls.update({endpoint.region: endpoint.publicURL})  %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if 'global' in service_urls %}
+                    <tr>
+                    <td>
                     {{ role.name }}
-                    <ul>
-                        {% for endpoint in role.endpoints %}
-                        {% if endpoint.region %}
-                        <li> Region {{endpoint.region}} - {{endpoint.publicURL}} - <a href="/{{role.name}}/{{ endpoint.region}}">Show</a>
-                            {% else %}
-                        <li> Region global - {{endpoint.publicURL}} - <a href="/{{role.name}}/all">Show</a>
+                    </td>
+                    <td>
+                        {{ service_urls.global }}
+                    </td>
+                    </tr>
+                {% endif %}
+                {% if not region_global and not region_unknown %}
+                    <tr>
+                        <td>
+                            {{ role.name }}
+                        </td>
+                        <td>
+                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="DFW") }}">{{ service_urls.DFW }}</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="IAD") }}">{{ service_urls.IAD }}</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="ORD") }}">{{ service_urls.ORD }}</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="LON") }}">{{ service_urls.LON }}</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="HKG") }}">{{ service_urls.HKG }}</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="SYD") }}">{{ service_urls.SYD }}</a>
+                        </td>
+                    </tr>
+                {% endif %}
 
-                            {% endif %}
-                            {% endfor %}
-                    </ul>
-                </li>
-            </div>
             {% endfor %}
+            </tbody>
+            </table>
         </ul>
         {%  endif %}
     </div>
