@@ -3,10 +3,14 @@
 {% set header_class="auth_header" %}
 
 {% block header_body %}
-    {% if g.user_info %}
+{% endblock %}
+
+
+{% block main_body %}
+    {% if g.user_info.token %}
         <span class="auth_expiretime">Expires in :</span>
         {% if g.user_info.token_seconds_left <= 0 %}
-        Auth as expired
+            Auth as expired
         {% else %}
             {% if g.user_info.token_seconds_left > 7200 %}
                 {{ (g.user_info.token_seconds_left/3600)|int }} hour(s)
@@ -24,55 +28,34 @@
         <div class="refresh_token">
             <a href="/refresh_auth">Refresh auth info</a><br>
         </div>
-    {%  else %}
-        No info, need to log in.
     {%  endif %}
-{% endblock %}
 
-
-{% block main_body %}
     <div id="complete_service_catalog">
-        <h2> Identity </h2>
         {% if not g.user_info.token %}
-            <span id="login_api_title">Login through API</span> -
-            <span id="login_validate_token_title">Login with validated token</span>
+            <h2> Log into Rackspace </h2>
 
+            <pre id="request_code">
+POST https://identity.api.rackspacecloud.com/v2.0/tokens
+Content-Type: application/json</pre>
             <div id="login_api">
-                <form method="POST" action="/cloudIdentity/all/tokens">
+                <div class="json_display">
+
+                <form class="post_json" method="POST" action="{{ url_for('rackspacecloud.identity_request', new_path='tokens') }}">
                     {{ form.hidden_tag() }}
-                    <div class="json_format">
-                        "stringaaaaa"
-                    </div>
-                    <div class="json_format">
-                        {
-                            "auth": {
-                                "RAX-KSKEY:apiKeyCredentials": {
-                                    "username": "",
-                                    "apiKey": ""
-                                }
-                            }
-                        }
-                    </div>
-                    <input type="submit" name="Login">
+                    <pre>
+                    {{ test_dict|format_json_html|safe }}
+                    </pre>
+                    <button class="btn btn-primary">Login stuff</button>
                 </form>
-            </div>
-            <div id="login_validate_token">
-                <form method="POST" action="/cloudIdentity/all/tokens">
-                    {{ form_validate.hidden_tag() }}
-
-                    {% for field in form_validate %}
-                        {% if field.widget.input_type != 'hidden' %} {{ field.label }} {% endif %}
-                        {{ field }}<br>
-                    {% endfor %}
-                    <input type="submit" name="Login">
-                </form>
+                </div>
             </div>
 
-        {%  endif %}
-        <h2>Service Catalog</h2>
+        {% else %}
+        <h2>Rackspace Services</h2>
         <ul>
             {% for role in g.user_info.service_catalog_list %}
             <div id="catalog_{{role.name}}">
+
                 <li>
                     {{ role.name }}
                     <ul>
@@ -89,25 +72,8 @@
             </div>
             {% endfor %}
         </ul>
+        {%  endif %}
     </div>
-    <script>
-        $("#login_validate_token").hide();
-        $("#login_api").hide();
-
-        $("#login_validate_token_title").click(function(){
-            $("#login_api").hide();
-            $("#login_validate_token").show();
-        });
-
-        $("#login_api_title").click(function(){
-            $("#login_api").show();
-            $("#login_validate_token").hide();
-        });
-        $("div.json_format").each(function(index, element) {
-            var asdf = JSON.parse(element.innerHTML);
-            element.innerHTML = display_json_new(asdf);
-        })
-    </script>
 
 {% endblock %}
 

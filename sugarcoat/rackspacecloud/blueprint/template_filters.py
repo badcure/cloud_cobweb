@@ -1,6 +1,5 @@
 import pprint
-import sugarcoat.rackspacecloud.blueprint
-import sugarcoat.rackspacecloud.base
+import sugarcoat.rackspacecloud.blueprint.base
 import re
 import flask
 

@@ -193,6 +193,15 @@ def logout_fn():
 
 @app.route('/', methods=['GET', 'POST'])
 def rackspace_index():
+    test =                         {
+        "auth": {
+            "RAX-KSKEY:apiKeyCredentials": {
+                "username": "<input name='login-username'>",
+                "apiKey": "<input name='login-password' type='password'>"
+            }
+        }
+    }
+
     template_info = dict()
 
     template_info['form'] = LoginFormAPI(prefix='login')
@@ -229,4 +238,5 @@ def rackspace_index():
 
 
     template_info['message'] = ''
+    template_info['test_dict'] = test
     return flask.Response(flask.render_template('index.html', **template_info))

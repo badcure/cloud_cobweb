@@ -175,7 +175,8 @@ class APIBase(object):
     def base_request(cls, method='get', **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
 
-        if isinstance(kwargs.get('data'), dict):
+
+        if isinstance(kwargs.get('data'), (dict, list, tuple)):
             kwargs['data'] = json.dumps(kwargs['data'])
             kwargs['headers']['Content-Type'] = 'application/json'
 
@@ -183,6 +184,9 @@ class APIBase(object):
             kwargs['headers'].update(kwargs['additional_headers'])
             del kwargs['additional_headers']
 
+        kwargs['headers']['User-Agent'] = '{0} https://sugarcoat.in'.format(kwargs['headers'].get(
+            'User-Agent', requests.utils.default_user_agent()))
+        kwargs['headers']['Connection'] = kwargs['headers'].get('Connection', 'close')
         return getattr(requests, method.lower())(**kwargs)
 
     @classmethod
@@ -243,8 +247,7 @@ class APIBase(object):
             for possible_url in rel_class.available_urls():
                 for kwarg_id in orig_common_ids:
                     if '{'+kwarg_id+'}' in possible_url:
-                        print((base_url + possible_url, rel_class, kwarg_id))
-                        result_list.append((base_url + possible_url, rel_class, kwarg_id))
+                        result_list.append((base_url + possible_url,rel_class,kwarg_id))
 
         return result_list
 
