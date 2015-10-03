@@ -53,7 +53,7 @@ Content-Type: application/json</pre>
         {% else %}
         <h2>Rackspace Services</h2>
         <ul>
-            <table>
+            <table class="table-striped table">
             <thead><tr><th>Service Name</th><th>DFW</th><th>IAD</th><th>ORD</th><th>LON</th><th>HKG</th><th>SYD</th></tr></thead>
             <tbody>
 
@@ -73,33 +73,33 @@ Content-Type: application/json</pre>
                     <td>
                     {{ role.name }}
                     </td>
-                    <td>
-                        {{ service_urls.global }}
+                    <td colspan="6">
+                        <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="DFW") }}">{{ service_urls.global }}</a>
                     </td>
                     </tr>
                 {% endif %}
-                {% if not region_global and not region_unknown %}
+                {% if 'global' not in service_urls %}
                     <tr>
                         <td>
                             {{ role.name }}
                         </td>
                         <td>
-                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="DFW") }}">{{ service_urls.DFW }}</a>
+                            {% if service_urls.DFW %}<a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="DFW") }}">{{ service_urls.DFW }}{% else %}N/A</a>{% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="IAD") }}">{{ service_urls.IAD }}</a>
+                            {% if service_urls.IAD %} <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="IAD") }}">{{ service_urls.IAD }}{% else %}N/A</a>{% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="ORD") }}">{{ service_urls.ORD }}</a>
+                            {% if service_urls.ORD %}<a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="ORD") }}">{{ service_urls.ORD }}</a>{% else %}N/A{% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="LON") }}">{{ service_urls.LON }}</a>
+                            {% if service_urls.LON %}<a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="LON") }}">{{ service_urls.LON }}</a>{% else %}N/A{% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="HKG") }}">{{ service_urls.HKG }}</a>
+                            {% if service_urls.HKG %}<a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="HKG") }}">{{ service_urls.HKG }}</a>{% else %}N/A{% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="SYD") }}">{{ service_urls.SYD }}</a>
+                            {% if service_urls.SYD %}<a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="SYD") }}">{{ service_urls.SYD }}</a>{% else %}N/A{% endif %}
                         </td>
                     </tr>
                 {% endif %}

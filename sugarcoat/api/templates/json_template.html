@@ -52,20 +52,19 @@
             <pre id="display_code">{{ json_result.display_with_relation|convert_to_urls }}</pre>
         </div>
     {% endif %}
-    <h1>Additional Links</h1>
-    <div class="more_urls">
-        <div class="populated_urls">
-            <ul>
+    {% if g.user_info.token %}
+        <h1>Additional Links</h1>
+        <table class="table table-striped">
+            <thead>
+            <tr><td>Additional URL</td></tr>
+            </thead>
+            <tbody>
                 {% for url in additional_urls.links.populated %}
-                    <li>{{ url|safe }}</li>
+                    <tr><td>{{ url|safe }}</td></tr>
                 {% endfor %}
-            </ul>
-        </div>
-    </div>
-
+            </tbody>
+        </table>
+    {%  endif %}
 {% endblock %}
 
 
-{% block bottom_body %}
-
-{% endblock %}
