@@ -12,3 +12,7 @@ else:
     print("Randomly generating secret key")
     app.secret_key = ''.join(random.sample(string.ascii_letters, 24))
 app.jinja_options['extensions'].append('jinja2.ext.do')
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return flask.redirect('/')

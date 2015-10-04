@@ -199,12 +199,18 @@ class APIBase(object):
         return self._identity.token
 
     def public_endpoint_urls(self, region=None):
+        if not self._identity.token:
+            return []
         result = self._identity.service_catalog(name=self.catalog_key,
                                                 region=region)
+
         return [endpoint.get('publicURL') for endpoint in
                 result[0]['endpoints']]
 
     def get_api_resource(self, region=None, initial_url_append=None, data_object=None, **kwargs):
+        if not self._identity.token:
+            return {}
+
         region_url = self.public_endpoint_urls(region=region)[0]
 
         if '__root__' == initial_url_append.split('/')[1]:

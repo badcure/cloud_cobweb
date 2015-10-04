@@ -85,6 +85,11 @@ def before_request(*args, **kwargs):
 def after_request(response):
     return response
 
+@app.errorhandler(404)
+def page_not_found(e):
+    if not flask.g.user_info or not flask.g.user_info.token:
+        return flask.redirect(flask.url_for('rackspacecloud.rackspace_index'))
+
 
 @app.route('/cloudIdentity/all', methods=['GET', 'POST'])
 @app.route('/cloudIdentity/all/', methods=['GET', 'POST'])
@@ -150,6 +155,8 @@ def identity_request(new_path=''):
 @app.route('/<string:servicename>/<string:region>/')
 @app.route('/<string:servicename>/<string:region>/<path:new_path>')
 def service_catalog_list(servicename,region,new_path=''):
+    if not flask.g.user_info.token:
+        return flask.redirect(flask.url_for('rackspacecloud.rackspace_index'))
     flask.g.list_obj = sugarcoat.rackspacecloud.services.get_catalog_api(servicename)(flask.g.user_info)
     query_args = ''
     new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
@@ -211,35 +218,6 @@ def rackspace_index():
 
     template_info['form'] = LoginFormAPI(prefix='login')
     template_info['form_validate'] = ValidateToken(prefix='validate')
-
-    if template_info['form'].validate_on_submit():
-        # Login and validate the user.
-        # user should be an instance of your `User` class
-        local_ident = LoginFormAPI(template_info['form'].username.data,
-                                                      template_info['form'].password.data)
-        if local_ident.token:
-            flask.session['user_info'] = local_ident.auth_payload
-
-            flask.flash('Logged in successfully.')
-
-            next_url = flask.request.args.get('next')
-            return flask.redirect(next_url or flask.url_for('index'))
-        else:
-            flask.flash('Invalid login.')
-    elif template_info['form'].validate_on_submit():
-        # Login and validate the user.
-        # user should be an instance of your `User` class
-        local_ident = LoginFormPassword(template_info['form_validate'].username.data,
-                                                           template_info['form_validate'].password.data)
-        if local_ident.token:
-            flask.session['user_info'] = local_ident.auth_payload
-
-            flask.flash('Logged in successfully.')
-
-            next_url = flask.request.args.get('next')
-            return flask.redirect(next_url or flask.url_for('index'))
-        else:
-            flask.flash('Invalid login.')
 
 
     template_info['message'] = ''
