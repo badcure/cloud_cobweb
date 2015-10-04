@@ -33,8 +33,8 @@ setuptools.setup(
     url='https://github.com/badcure/sugarcoat/',
     packages=setuptools.find_packages() + ['sugarcoat.api.templates'],
     include_package_data=True,
-    package_data={'sugarcoat': ['api/templates/*', 'api/static/*', 'api/static/js/*', 'api/static/css/*',
-                                'api/static/fonts/*'], },
+    package_data={'sugarcoat': ['api/templates/*', 'api/static/*.js', 'api/static/*.css', 'api/static/js/*',
+                                'api/static/css/*', 'api/static/fonts/*'], },
     zip_safe=False,
     install_requires=required,
 )
