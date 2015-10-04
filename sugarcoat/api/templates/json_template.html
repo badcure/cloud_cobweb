@@ -24,46 +24,100 @@
 
 {% block main_body %}
 
-<h1>{{ json_result.method }} - Request</h1>
-<span class="request_url_header">{{ json_result.method }} </span> {{ json_result.url }}<br>
-
-<pre id="request_code">{{ json_result.request_headers|print_headers }}</pre>
-
-<h1>Request Body{% if not json_result.request_body %} - Empty{% endif %}</h1>
-
-<div class="json_display">
-    <pre id="response_code">{{ json_result.request_body }}</pre>
-</div>
-
-    <h1>Response</h1>
-    Response Code: <span class="request_url_status_code">{{ json_result.status_code }}</span><br>
-    Response Time: <span class="{{ response_status_class }}">{{ (json_result.response_time*1000)|int }} ms</span>
-
-    <div class="json_display">
-        <pre id="response_code">{{ json_result.response_headers|print_headers }}</pre>
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" href="#request_header" aria-controls="request_header" aria-expanded="false">Request Header</a>
+                </h4>
+            </div>
+            <div id="request_header" class="collapse">
+                <div class="panel-body">
+                    <pre>{{ json_result.request_headers|print_headers }}</pre>
+                </div>
+            </div>
+        </div>
     </div>
-<h1>Data - {{ json_result.result_type }}</h1>
-    {% if json_result.safe_html %}
-        <div class="json_display">
-            <pre id="display_code">{{ json_result.display_with_relation|convert_to_urls|safe }}</pre>
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" href="#request_body" aria-controls="request_body" aria-expanded="false">Request Body</a>
+                </h4>
+            </div>
+            <div id="request_body" class="collapse">
+                <div class="panel-body">
+                    <pre>{{ json_result.request_body }}</pre>
+                </div>
+            </div>
         </div>
-    {% else %}
-        <div class="json_display">
-            <pre id="display_code">{{ json_result.display_with_relation|convert_to_urls }}</pre>
+    </div>
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" href="#response_header" aria-controls="response_header" aria-expanded="false">Response Header</a>
+                </h4>
+            </div>
+            <div id="response_header" class="collapse">
+                <div class="panel-body">
+                    Response Code: <span class="request_url_status_code">{{ json_result.status_code }}</span><br>
+                    Response Time: <span class="{{ response_status_class }}">{{ (json_result.response_time*1000)|int }} ms</span>
+
+                    <pre>{{ json_result.response_headers|print_headers }}</pre>
+                </div>
+            </div>
         </div>
-    {% endif %}
+    </div>
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" href="#response_body" aria-controls="response_body" aria-expanded="false">Response Body</a>
+                </h4>
+            </div>
+            <div id="response_body" class="collapse in">
+                <div class="panel-body">
+                    {% if json_result.safe_html %}
+                        <div class="json_display">
+                            <pre id="display_code">{{ json_result.display_with_relation|convert_to_urls|safe }}</pre>
+                        </div>
+                    {% else %}
+                        <div class="json_display">
+                            <pre id="display_code">{{ json_result.display_with_relation|convert_to_urls }}</pre>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     {% if g.user_info.token %}
-        <h1>Additional Links</h1>
-        <table class="table table-striped">
-            <thead>
-            <tr><td>Additional URL</td></tr>
-            </thead>
-            <tbody>
-                {% for url in additional_urls.links.populated %}
-                    <tr><td>{{ url|safe }}</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="panel-group">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#additional_urls" aria-controls="additional_urls" aria-expanded="false">Additional URL</a>
+                    </h4>
+                </div>
+                <div id="additional_urls" class="collapse">
+                    <div class="panel-body">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr><td>Additional URL</td></tr>
+                            </thead>
+                            <tbody>
+                            {% for url in additional_urls.links.populated %}
+                                <tr><td>{{ url|safe }}</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     {%  endif %}
 {% endblock %}
 
