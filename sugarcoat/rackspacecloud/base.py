@@ -1,14 +1,43 @@
+import sugarcoat.base
 import copy
 import time
 
 import requests
-import sugarcoat.rackspace_api.base
+
+
+class RackAPIResult(sugarcoat.base.APIResult):
+    pass
+
+
+class RackAPI(sugarcoat.base.APIBase):
+    result_class = RackAPIResult
+    _identity = None
+
+    def __init__(self, identity):
+        if not isinstance(identity, Identity):
+            raise ValueError("Identity object required")
+        self._identity = identity
+
+    @classmethod
+    def kwargs_from_request(cls, url, api_result, **kwargs):
+        result = dict()
+        return result
+
+    @classmethod
+    def get_catalog_api(cls, catalog_key):
+        for possible_class in cls.__subclasses__():
+            if possible_class.catalog_key == catalog_key:
+                return possible_class
+        return None
+
+    def get_auth(self):
+        return self._identity
 
 
 BASE_URL = 'https://identity.api.rackspacecloud.com'
 
 
-class Identity(sugarcoat.rackspace_api.base.RackAPI):
+class Identity(RackAPI):
     _username = None
     _apikey = None
     _auth = None
@@ -38,8 +67,8 @@ class Identity(sugarcoat.rackspace_api.base.RackAPI):
             return None
 
         url = "{0}/v2.0/tokens".format(BASE_URL)
-        result = self.base_request(method='post', data=payload, url=url)
         try:
+            result = self.base_request(method='post', data=payload, url=url)
             result.raise_for_status()
             self._auth = result.json()
         except requests.HTTPError:

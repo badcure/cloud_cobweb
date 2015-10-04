@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='rci.css') }}">
+    <script src="{{ url_for('static', filename='jquery-2.1.4.min.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}">
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/npm.js') }}"></script>
+    <script src="{{ url_for('static', filename='display_objects.js') }}"></script>
     <meta charset="UTF-8">
     <title>Homepage</title>
+
 </head>
 <body>
 
-<div id="header" class="{{ header_class }}">
-    {% block header_body %}{% endblock %}
-</div>
 <div id="left">
     {% block left_body %}{% endblock %}
 </div>
@@ -34,5 +37,41 @@
 <div id="bottom">
     {% block bottom_body %}{% endblock %}
 </div>
+<script>
+    $($("div.json.object").get().reverse()).each(function(){
+        var old_html = this.innerHTML;
+        var new_html = "";
+        new_html += Array((parseInt($(this).attr('iteration')))*4).join('&nbsp;');
+        new_html += '{' + old_html;
+        new_html += Array((parseInt($(this).attr('iteration')))*4).join('&nbsp;');
+        new_html += '}';
+        this.innerHTML = new_html;
+    });
+    $($("div.json.list").get().reverse()).each(function(){
+        var old_html = this.innerHTML;
+        var new_html = "";
+        new_html += Array((parseInt($(this).attr('iteration')))*4).join('&nbsp;');
+        new_html += '[' + old_html + ']';
+        this.innerHTML = new_html;
+    });
+    $($(".json.string").get().reverse()).each(function(){
+        var old_html = this.innerHTML;
+        var new_html = "";
+        if ($(this).parent().get(0).className != 'json object_value'){
+            new_html += Array((parseInt($(this).attr('iteration')))*4).join('&nbsp;');
+        }
+        new_html += '"' + old_html + '"';
+        this.innerHTML = new_html;
+    });
+    $($(".json.object_key").get().reverse()).each(function(){
+        var old_html = this.innerHTML;
+        var new_html = "";
+        new_html = old_html + ": ";
+        this.innerHTML = new_html;
+    });
+
+
+</script>
+
 </body>
 </html>

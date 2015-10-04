@@ -1,15 +1,18 @@
 import flask
-import flask_wtf
-import wtforms
-from requests.packages import urllib3
-
-
-urllib3.disable_warnings()
-
-
-class LoginForm(flask_wtf.Form):
-    username = wtforms.StringField('Username', [wtforms.validators.Length(min=1, max=25)])
-    password = wtforms.PasswordField('Rackspace API Key')
+import string
+import random
+import os
 
 app = flask.Flask(__name__)
-app.secret_key = 'thisisdefinitelynotasecretkey'
+ENVIRON_SECRETKEY_NAME = 'sugarcoat_secret'
+if ENVIRON_SECRETKEY_NAME in os.environ:
+    print("Using environment {0} for secret_key".format(ENVIRON_SECRETKEY_NAME))
+    app.secret_key = os.environ[ENVIRON_SECRETKEY_NAME]
+else:
+    print("Randomly generating secret key")
+    app.secret_key = ''.join(random.sample(string.ascii_letters, 24))
+app.jinja_options['extensions'].append('jinja2.ext.do')
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return flask.redirect('/')

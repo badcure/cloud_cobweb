@@ -14,7 +14,7 @@ class APIResult(dict):
     relation_urls = None
 
     def __init__(self, result, request_headers=None, response_headers=None, url=None, status_code=-2,
-                 identity_obj=None, method='Unknown', request_body=None, **kwargs):
+                 identity_obj=None, method='Unknown', request_body=None, show_confidential=False,  **kwargs):
         super().__init__(**kwargs)
         self.relation_urls = list()
         self._identity_obj = identity_obj
@@ -62,11 +62,12 @@ class APIResult(dict):
         self['method'] = method
         self['request_body'] = request_body
 
-        for header_name in MASK_HEADERS:
-            if header_name in self['request_headers']:
-                self['request_headers'][header_name] = '<masked>'
-            if header_name in self['response_headers']:
-                self['response_headers'][header_name] = '<masked>'
+        if not show_confidential:
+            for header_name in MASK_HEADERS:
+                if header_name in self['request_headers']:
+                    self['request_headers'][header_name] = '<masked>'
+                if header_name in self['response_headers']:
+                    self['response_headers'][header_name] = '<masked>'
 
     def pre_html_result(self):
         result = self['result']
@@ -117,9 +118,10 @@ class APIResult(dict):
 
     def add_relation_urls(self, api_base_obj, region, tenant_id):
         rel_urls = api_base_obj.get_relation_urls()
-        url_kwargs = self.get_resources()
-        url_kwargs['tenant_id'] = tenant_id
+        orig_url_kwargs = self.get_resources()
+        orig_url_kwargs['tenant_id'] = tenant_id
         for index, url_info in enumerate(rel_urls):
+            url_kwargs = copy.deepcopy(orig_url_kwargs)
             url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or region
             try:
                 url = url_info[0].format(**url_kwargs)
@@ -129,8 +131,7 @@ class APIResult(dict):
             resource_name = url_info[2]
 
             if '_UNDEFINED' not in url:
-                self.add_relation(url=url, region=url_kwargs['region'], resource_name=resource_name,
-                                  resource_type=resource_type)
+                self.add_relation(url=url, region=url_kwargs['region'], resource_name=resource_name, resource_type=resource_type)
 
         return
 
@@ -151,7 +152,7 @@ class APIBase(object):
         result = self.display_base_request(**kwargs)
         return result
 
-    def displayable_json_auth_request(self, region=None, **kwargs):
+    def displayable_json_auth_request(self, region=None, show_confidential=False, **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
         kwargs['headers']['X-Auth-Token'] = self.token
         if self._accept_header_json:
@@ -166,7 +167,7 @@ class APIBase(object):
         json_result = None
         if issubclass(self.result_class, APIResult):
             json_result = self.result_class(result, response_time=end_time-start_time, identity_obj=self._identity,
-                                            region=region)
+                                            region=region, show_confidential=show_confidential)
             json_result.add_relation_urls(self, region, self._identity.tenant_id)
 
         return json_result
@@ -175,7 +176,8 @@ class APIBase(object):
     def base_request(cls, method='get', **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
 
-        if isinstance(kwargs.get('data'), dict):
+
+        if isinstance(kwargs.get('data'), (dict, list, tuple)):
             kwargs['data'] = json.dumps(kwargs['data'])
             kwargs['headers']['Content-Type'] = 'application/json'
 
@@ -183,6 +185,9 @@ class APIBase(object):
             kwargs['headers'].update(kwargs['additional_headers'])
             del kwargs['additional_headers']
 
+        kwargs['headers']['User-Agent'] = '{0} https://sugarcoat.in'.format(kwargs['headers'].get(
+            'User-Agent', requests.utils.default_user_agent()))
+        kwargs['headers']['Connection'] = kwargs['headers'].get('Connection', 'close')
         return getattr(requests, method.lower())(**kwargs)
 
     @classmethod
@@ -194,12 +199,18 @@ class APIBase(object):
         return self._identity.token
 
     def public_endpoint_urls(self, region=None):
+        if not self._identity.token:
+            return []
         result = self._identity.service_catalog(name=self.catalog_key,
                                                 region=region)
+
         return [endpoint.get('publicURL') for endpoint in
                 result[0]['endpoints']]
 
     def get_api_resource(self, region=None, initial_url_append=None, data_object=None, **kwargs):
+        if not self._identity.token:
+            return {}
+
         region_url = self.public_endpoint_urls(region=region)[0]
 
         if '__root__' == initial_url_append.split('/')[1]:
@@ -243,8 +254,7 @@ class APIBase(object):
             for possible_url in rel_class.available_urls():
                 for kwarg_id in orig_common_ids:
                     if '{'+kwarg_id+'}' in possible_url:
-                        print((base_url + possible_url, rel_class, kwarg_id))
-                        result_list.append((base_url + possible_url, rel_class, kwarg_id))
+                        result_list.append((base_url + possible_url,rel_class,kwarg_id))
 
         return result_list
 

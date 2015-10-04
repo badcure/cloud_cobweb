@@ -2,7 +2,8 @@
 
 {% block main_body %}
 {% if logged_in %}
-You are logged in, <a href="{{ url_for('logout_fn') }}">logout here.</a>
+
+You are logged in, <a href="{{ url_for("rackspacecloud.logout") }}">logout here.</a>
 {% else %}
 <form method="POST">
     {{ form.hidden_tag() }}
@@ -13,5 +14,16 @@ You are logged in, <a href="{{ url_for('logout_fn') }}">logout here.</a>
     {% endfor %}
     <input type="submit" name="Login">
 {% endif %}
+Use an authentication token.
+<form method="POST" action="/validate_token">
+    {{ form.hidden_tag() }}
+
+    {% for field in form %}
+        {% if field.widget.input_type != 'hidden' %} {{ field.label }} {% endif %}
+        {{ field }}<br>
+    {% endfor %}
+    <input type="submit" name="Login">
+    {% endif %}
+
 </form>
 {% endblock %}

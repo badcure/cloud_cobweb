@@ -2,6 +2,10 @@ pre {
     background: #222222;
 }
 
+.post_json {
+    background: #222222;
+}
+
 .status_code_bad_request {
     background: orange;
 }
@@ -170,4 +174,8 @@ pre {
 
 .auth_header {
     background: lightgray;
+}
+
+.string {
+    color: darkgreen;
 }

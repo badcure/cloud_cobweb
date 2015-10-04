@@ -1,4 +1,4 @@
 flask
 requests
-flask-login
 Flask-WTF
+flask-restful
