@@ -1,28 +1,37 @@
 {% extends 'base.html' %}
 {% if json_result.status_code < 299 %}
-    {% set header_class="status_code_ok" %}
+    {% set header_class="bg-success" %}
 {% elif json_result.status_code < 399 %}
-    {% set header_class="status_code_redirect" %}
+    {% set header_class="bg-info" %}
 {% elif json_result.status_code < 499 %}
-    {% set header_class="status_code_bad_request" %}
+    {% set header_class="bg-warning" %}
 {% elif json_result.status_code < 599 %}
-    {% set header_class="status_code_server_error" %}
+    {% set header_class="bg-danger" %}
 {% else %}
-    {% set header_class="status_code_unknown" %}
+    {% set header_class="bg-danger" %}
 {% endif %}
 
-{% if json_result.response_time < 500 %}
-    {% set response_status_class="response_time_great" %}
-{% elif json_result.response_time < 1000 %}
-    {% set response_status_class="response_time_good" %}
-{% elif json_result.response_time < 5000 %}
-    {% set response_status_class="response_time_ok" %}
+{% if json_result.response_time < 0.5 %}
+    {% set response_status_class="bg-success" %}
+{% elif json_result.response_time < 1 %}
+    {% set response_status_class="bg-success" %}
+{% elif json_result.response_time < 5 %}
+    {% set response_status_class="bg-warning" %}
 {% else %}
-    {% set response_status_class="response_time_bad" %}
+    {% set response_status_class="bg-danger" %}
 {% endif %}
 
 
 {% block main_body %}
+    <dl class="dl-horizontal">
+        <dt>URL</dt>
+        <dd>{{ request.url }}</dd>
+        <dt>Response Code</dt>
+        <dd class="{{ header_class }}">{{ json_result.status_code }}</dd>
+        <dt>Response Time</dt>
+        <dd class="{{ response_status_class }}">{{ json_result.response_time*1000|int }} ms</dd>
+
+    </dl>
 
     <div class="panel-group">
         <div class="panel panel-default">
@@ -61,9 +70,6 @@
             </div>
             <div id="response_header" class="collapse">
                 <div class="panel-body">
-                    Response Code: <span class="request_url_status_code">{{ json_result.status_code }}</span><br>
-                    Response Time: <span class="{{ response_status_class }}">{{ (json_result.response_time*1000)|int }} ms</span>
-
                     <pre>{{ json_result.response_headers|print_headers }}</pre>
                 </div>
             </div>
@@ -101,15 +107,23 @@
                         <a data-toggle="collapse" href="#additional_urls" aria-controls="additional_urls" aria-expanded="false">Additional URL</a>
                     </h4>
                 </div>
-                <div id="additional_urls" class="collapse">
+                <div id="additional_urls" class="collapse in">
                     <div class="panel-body">
-                        <table class="table table-striped">
+                        <table class="table table-hover">
                             <thead>
-                            <tr><td>Additional URL</td></tr>
+                            <tr><td>Action</td><td>Additional URL</td></tr>
                             </thead>
                             <tbody>
                             {% for url in additional_urls.links.populated %}
-                                <tr><td>{{ url|safe }}</td></tr>
+                                {% if 'href' in url %}
+                                    <tr class="success">
+                                        <td><button type="button" class="btn btn-primary">GET</button></td>
+                                        <td>{{ url|safe }}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr><td><button type="button" class="btn btn-default">GET</button></td>
+                                        <td>{{ url|safe }}</td></tr>
+                                {% endif %}
                             {% endfor %}
                             </tbody>
                         </table>
