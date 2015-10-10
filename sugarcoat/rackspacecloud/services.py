@@ -78,6 +78,7 @@ class ServersAPI(sugarcoat.rackspacecloud.base.RackAPI):
     url_kwarg_list = ('server_id', 'flavor_id', 'attachment_id', 'image_id', 'metadata_key', 'server_uri',
                       'flavor_class', 'server_request_id', 'user_id')
     result_class = ServerResult
+    image_url = 'http://docs.rackspace.com/icon-servers.svg'
 
     @classmethod
     def available_urls(cls):
@@ -110,6 +111,7 @@ class FeedsAPI(sugarcoat.rackspacecloud.base.RackAPI):
     url_kwarg_list = ('server_id', 'entity_id', 'user_id', 'container_name', 'machine_agent_id', 'username',
                       'load_balancer_id')
     _accept_header_json = 'application/vnd.rackspace.atom+json'
+    image_url = 'http://docs.rackspace.com/icon-cloudfeeds.svg'
 
     @classmethod
     def available_urls(cls):
@@ -128,6 +130,8 @@ class BackupAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudBackup'
     url_kwarg_list = ('server_id', 'restore_id', 'machine_agent_id', 'backup_configuration_id', 'backup_id')
     result_class = BackupResult
+    image_url = 'http://docs.rackspace.com/icon-backup.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -156,6 +160,8 @@ class MonitoringAPI(sugarcoat.rackspacecloud.base.RackAPI):
     url_kwarg_list = ('entity_id', 'check_id', 'metric_name', 'check_type_id', 'monitoring_zone_id', 'alarm_id',
                       'notification_plan_id', 'notification_id', 'alarm_example_id', 'suppression_id', 'server_uri')
     result_class = MonitoringResult
+    image_url = 'http://docs.rackspace.com/icon-monitoring.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -217,6 +223,8 @@ class OrchastrationAPI(sugarcoat.rackspacecloud.base.RackAPI):
     url_kwarg_list = ('stack_name', 'stack_id', 'heat_resource_name', 'heat_event_id', 'heat_resource_type',
                       'server_id')
     result_class = OrachastrationResult
+    image_url = 'http://docs.rackspace.com/icon-orchestration.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -243,6 +251,8 @@ class OrchastrationAPI(sugarcoat.rackspacecloud.base.RackAPI):
 class CloudFilesAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudFiles'
     url_kwarg_list = ('container_name', 'object')
+    image_url = 'http://docs.rackspace.com/icon-files.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -256,6 +266,8 @@ class CloudFilesAPI(sugarcoat.rackspacecloud.base.RackAPI):
 class CloudFilesCDNAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudFilesCDN'
     url_kwarg_list = ()
+    image_url = 'http://docs.rackspace.com/icon-cdn.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -267,7 +279,8 @@ class CloudFilesCDNAPI(sugarcoat.rackspacecloud.base.RackAPI):
 class RackspaceCDNAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'rackCDN'
     url_kwarg_list = ('flavor_id',)
-    only_region = 'DFW'
+    only_region = 'dfw'
+    image_url = 'http://docs.rackspace.com/icon-cdn.svg'
 
     @classmethod
     def available_urls(cls):
@@ -284,6 +297,7 @@ class RackspaceCDNAPI(sugarcoat.rackspacecloud.base.RackAPI):
 class CloudImages(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudImages'
     url_kwarg_list = ('image_id', 'member_id', 'task_id')
+    image_url = 'http://docs.rackspace.com/icon-images.svg'
 
     @classmethod
     def available_urls(cls):
@@ -307,7 +321,9 @@ class CloudImages(sugarcoat.rackspacecloud.base.RackAPI):
 
 class CloudMetricsAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudMetrics'
+    only_region = 'iad'
     url_kwarg_list = ('metric_name', )
+    image_url = 'http://docs.rackspace.com/icon-metrics.svg'
 
     @classmethod
     def available_urls(cls):
@@ -323,7 +339,10 @@ class CloudMetricsAPI(sugarcoat.rackspacecloud.base.RackAPI):
 
 class CloudDNSAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudDNS'
+    only_region = 'dfw'
     url_kwarg_list = ('clouddns_limit_type', 'clouddns_domain_id', 'clouddns_record_id', 'clouddns_service_name')
+    image_url = 'http://docs.rackspace.com/icon-dns.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -350,6 +369,7 @@ class CloudServersFirstGenAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudServers'
     url_kwarg_list = ('first_gen_id', 'first_gen_image_id', 'first_gen_ip_group_id')
     only_region = 'all'
+    image_url = 'http://docs.rackspace.com/icon-servers-fg.svg'
 
     @classmethod
     def available_urls(cls):
@@ -378,6 +398,7 @@ class CloudSitesAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudSites'
     url_kwarg_list = ()
 
+
     @classmethod
     def available_urls(cls):
         url_list = list()
@@ -388,6 +409,8 @@ class CloudSitesAPI(sugarcoat.rackspacecloud.base.RackAPI):
 class CloudNetworksAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudNetworks'
     url_kwarg_list = ()
+    image_url = 'http://docs.rackspace.com/icon-networks.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -403,6 +426,8 @@ class CloudLoadBalancersAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudLoadBalancers'
     url_kwarg_list = ('load_balancer_id', 'load_balancer_node_id', 'load_balancer_meta_id')
     result_class = LoadBalancerResult
+    image_url = 'http://docs.rackspace.com/icon-load-balancers.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -441,6 +466,8 @@ class CloudLoadBalancersAPI(sugarcoat.rackspacecloud.base.RackAPI):
 class CloudBlockStorageAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudBlockStorage'
     url_kwarg_list = ('volume_id', 'volume_type_id', 'snapshot_id')
+    image_url = 'http://docs.rackspace.com/icon-block-storage.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -461,6 +488,7 @@ class CloudBlockStorageAPI(sugarcoat.rackspacecloud.base.RackAPI):
 class CloudQueuesAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudQueues'
     url_kwarg_list = ('queue_name', 'message_id', 'claim_id')
+    image_url = 'http://docs.rackspace.com/icon-queues.svg'
 
     @classmethod
     def available_urls(cls):
@@ -480,6 +508,8 @@ class CloudQueuesAPI(sugarcoat.rackspacecloud.base.RackAPI):
 class CloudBigDataAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'cloudBigData'
     url_kwarg_list = ('big_data_cred_type', 'distro_id', 'stack_id', 'cluster_id')
+    image_url = 'http://docs.rackspace.com/icon-big-data.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -504,6 +534,8 @@ class CloudBigDataAPI(sugarcoat.rackspacecloud.base.RackAPI):
 class AutoscaleAPI(sugarcoat.rackspacecloud.base.RackAPI):
     catalog_key = 'autoscale'
     url_kwarg_list = ('autoscale_group_id', 'autoscale_policy_id', 'autoscale_webhook_id', 'cluster_id')
+    image_url = 'http://docs.rackspace.com/icon-auto-scale.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -528,6 +560,8 @@ class CloudDatabasesAPI(sugarcoat.rackspacecloud.base.RackAPI):
                       'clouddatabase_datastore_type', 'clouddatabase_datastore_version_id', 'clouddatabase_backup_id',
                       'clouddatabase_ha_id', 'clouddatabase_schedule_id', 'clouddatabase_config_id',
                       'clouddatabase_parameter_id')
+    image_url = 'http://docs.rackspace.com/icon-databases.svg'
+
 
     @classmethod
     def available_urls(cls):
@@ -577,6 +611,8 @@ class IdentityAPI(sugarcoat.rackspacecloud.base.RackAPI):
     _base_url = 'https://identity.api.rackspacecloud.com'
     only_region = 'all'
     url_kwarg_list = ('user_id', 'identity_token_id', 'identity_role_id', 'identity_domain_id', 'identity_alias')
+    image_url = 'http://docs.rackspace.com/icon-identity.svg'
+
 
     @classmethod
     def available_urls(cls):

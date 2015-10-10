@@ -80,6 +80,10 @@ def before_request(*args, **kwargs):
 
     flask.g.api_response = None
     flask.g.list_obj = None
+    flask.g.services = dict()
+    for tmp_cls in sugarcoat.rackspacecloud.base.RackAPI.__subclasses__():
+        flask.g.services[tmp_cls.catalog_key] = tmp_cls
+
 
 
 @app.after_request
@@ -243,6 +247,19 @@ def logout_fn():
         del flask.session['user_info']
     flask.g.user_info = None
     return flask.redirect('/')
+
+
+@app.route('/dfw', methods=['GET'], defaults={'region': 'dfw'})
+@app.route('/iad', methods=['GET'], defaults={'region': 'iad'})
+@app.route('/ord', methods=['GET'], defaults={'region': 'ord'})
+@app.route('/syd', methods=['GET'], defaults={'region': 'syd'})
+@app.route('/lon', methods=['GET'], defaults={'region': 'lon'})
+@app.route('/hkg', methods=['GET'], defaults={'region': 'hkg'})
+def region_view(region):
+    if not flask.g.user_info.token:
+        return flask.redirect(flask.url_for('rackspacecloud.login_view'))
+
+    return flask.Response(flask.render_template('region.html', region=region))
 
 
 @app.route('/', methods=['GET', 'POST'])

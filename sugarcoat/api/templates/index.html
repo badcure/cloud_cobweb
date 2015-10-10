@@ -9,6 +9,13 @@
 {% block main_body %}
     <nav class="navbar navbar-default navbar-fixed-top">
         <div class="container">
+            <p class="navbar-text"><a href="{{ url_for('rackspacecloud.rackspace_index') }}dfw"><span class="glyphicon glyphicon-plane" aria-hidden="true"></span>DFW</a></p>
+            <p class="navbar-text "><a href="{{ url_for('rackspacecloud.rackspace_index') }}iad"><span class="glyphicon glyphicon-plane" aria-hidden="true"></span>IAD</a></p>
+            <p class="navbar-text "><a href="{{ url_for('rackspacecloud.rackspace_index') }}ord"><span class="glyphicon glyphicon-plane" aria-hidden="true"></span>ORD</a></p>
+            <p class="navbar-text "><a href="{{ url_for('rackspacecloud.rackspace_index') }}lon"><span class="glyphicon glyphicon-plane" aria-hidden="true"></span>LON</a></p>
+            <p class="navbar-text "><a href="{{ url_for('rackspacecloud.rackspace_index') }}hkg"><span class="glyphicon glyphicon-plane" aria-hidden="true"></span>HKG</a></p>
+            <p class="navbar-text "><a href="{{ url_for('rackspacecloud.rackspace_index') }}syd"><span class="glyphicon glyphicon-plane" aria-hidden="true"></span>SYD</a></p>
+
             <ol class="breadcrumb navbar-right">
                 <li class="active"><a href="{{ url_for('rackspacecloud.rackspace_index') }}">Home</a></li>
                 <li class="active"><a href="{{ url_for('rackspacecloud.logout_fn') }}">Logout</a></li>

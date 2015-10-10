@@ -11,7 +11,11 @@ class RackAPIResult(sugarcoat.base.APIResult):
 
 class RackAPI(sugarcoat.base.APIBase):
     result_class = RackAPIResult
+    _base_url = None
     _identity = None
+    only_region = None
+    url_kwarg_list = tuple()
+    image_url = None
 
     def __init__(self, identity):
         if not isinstance(identity, Identity):
