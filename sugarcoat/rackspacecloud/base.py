@@ -210,7 +210,7 @@ class Identity(RackAPI):
         expire_in_seconds = time.mktime(self.token_expire_time)
         return int(expire_in_seconds - time.mktime(time.gmtime()))
 
-    def refresh_auth(self):
+    def refresh_auth(self, token=None):
         if not self.tenant_id or not self.token:
             return None
 

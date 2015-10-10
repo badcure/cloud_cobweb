@@ -23,6 +23,7 @@ class LoginFormPassword(flask_wtf.Form):
 
 
 class ValidateToken(flask_wtf.Form):
+    tenant_id = wtforms.StringField('Tenant ID', [wtforms.validators.Length(min=1, max=15)])
     token = wtforms.PasswordField('Rackspace Authenticated Token')
 
 
@@ -95,7 +96,6 @@ def page_not_found(e):
 @app.route('/cloudIdentity/all/', methods=['GET', 'POST'])
 @app.route('/cloudIdentity/all/<path:new_path>', methods=['GET', 'POST'])
 def identity_request(new_path=''):
-
     method = flask.request.method
     request_data = flask.request.data
     additional_headers = {}
@@ -122,6 +122,7 @@ def identity_request(new_path=''):
     template_kwargs = dict()
     template_kwargs['region'] = 'all'
     form = LoginFormAPI(prefix='login')
+    form_validate = ValidateToken(prefix='validate')
     if flask.request.method == 'POST' and form.validate_on_submit():
         # Login and validate the user.
         # user should be an instance of your `User` class
@@ -134,11 +135,20 @@ def identity_request(new_path=''):
                 }
             }
         }
+    elif flask.request.method == 'POST' and form_validate.validate_on_submit():
+        # Login and validate the user.
+        # user should be an instance of your `User` class
+
+        request_data = {'auth': {
+            "tenantId": form_validate.tenant_id.data,
+            "token": {
+                "id": form_validate.token.data
+            }}}
 
     flask.g.api_response = flask.g.list_obj.get_api_resource(
         region='all', initial_url_append='/' + new_path, method=method, data=request_data,
         additional_headers=additional_headers, show_confidential=flask.request.args.get('show_confidential', False))
-    if flask.request.method == 'POST' and form.validate_on_submit():
+    if flask.request.method == 'POST' and (form.validate_on_submit() or form_validate.validate_on_submit()):
         if not flask.request.args.get('show_confidential', False):
             flask.g.api_response['request_body'] = flask.g.api_response['request_body'].replace('"'+form.password.data+'"', '"<masked>"')
         if flask.g.api_response['status_code'] == 200:
@@ -185,6 +195,37 @@ def auth_token_view():
     return flask.json.jsonify(flask.g.user_info.display_safe())
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login_view():
+    test =                         {
+        "auth": {
+            "RAX-KSKEY:apiKeyCredentials": {
+                "username": "<input name='login-username'>",
+                "apiKey": "<input name='login-password' type='password'>"
+            }
+        }
+    }
+    use_token = {'auth': {
+        "tenantId": "<input name='validate-tenant_id'>",
+        "token": {
+            "id": "<input name='validate-token' type='password'>"
+        }}}
+
+    template_info = dict()
+
+    template_info['form'] = LoginFormAPI(prefix='login')
+    template_info['form_validate'] = ValidateToken(prefix='validate')
+
+
+    template_info['message'] = ''
+    template_info['test_dict'] = test
+    template_info['use_token_dict'] = use_token
+    if flask.request.method == 'POST' and template_info['form_validate'].validate_on_submit():
+        token = template_info['form_validate'].token.data
+        flask.g.user_info = sugarcoat.rackspacecloud.base.Identity()
+    return flask.Response(flask.render_template('login.html', **template_info))
+
+
 @app.route('/refresh_auth', methods=['GET'])
 def refresh_auth_fn():
     # Here we use a class of some kind to represent and validate our
@@ -198,28 +239,18 @@ def logout_fn():
     # Here we use a class of some kind to represent and validate our
     # client-side form data. For example, WTForms is a library that will
     # handle this for us, and we use a custom LoginFormAPI to validate.
-    del flask.session['user_info']
+    if 'user_info' in flask.session:
+        del flask.session['user_info']
     flask.g.user_info = None
     return flask.redirect('/')
 
 
 @app.route('/', methods=['GET', 'POST'])
 def rackspace_index():
-    test =                         {
-        "auth": {
-            "RAX-KSKEY:apiKeyCredentials": {
-                "username": "<input name='login-username'>",
-                "apiKey": "<input name='login-password' type='password'>"
-            }
-        }
-    }
-
+    if not flask.g.user_info.token:
+        return flask.redirect(flask.url_for('rackspacecloud.login_view'))
     template_info = dict()
-
-    template_info['form'] = LoginFormAPI(prefix='login')
-    template_info['form_validate'] = ValidateToken(prefix='validate')
 
 
     template_info['message'] = ''
-    template_info['test_dict'] = test
     return flask.Response(flask.render_template('index.html', **template_info))

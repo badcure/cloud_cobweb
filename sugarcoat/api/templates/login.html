@@ -1,29 +1,61 @@
 {% extends 'base.html' %}
 
 {% block main_body %}
-{% if logged_in %}
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <ol class="breadcrumb navbar-right">
+                {% if g.user_info and g.user_info.token %}
+                    <li class="active"><a href="{{ url_for('rackspacecloud.rackspace_index') }}">Home</a></li>
+                    <li class="active"><a href="{{ url_for('rackspacecloud.logout_fn') }}">Logout</a></li>
+                    <li class="active"><a href="{{ url_for('rackspacecloud.auth_token_view') }}">View Token</a></li>
+                {% else %}
+                    <li class="active"><a href="{{ url_for('rackspacecloud.login_view') }}">Log In</a></li>
+                    <li class="active"><a href="http://docs.rackspace.com/">Rackspace Documenation</a></li>
+                    <li class="active"><a href="http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/API_Operations.html">Rackspace Authentication Documenation</a></li>
 
-You are logged in, <a href="{{ url_for("rackspacecloud.logout") }}">logout here.</a>
-{% else %}
-<form method="POST">
-    {{ form.hidden_tag() }}
+                {% endif %}
 
-    {% for field in form %}
-    {% if field.widget.input_type != 'hidden' %} {{ field.label }} {% endif %}
-    {{ field }}<br>
-    {% endfor %}
-    <input type="submit" name="Login">
-{% endif %}
-Use an authentication token.
-<form method="POST" action="/validate_token">
-    {{ form.hidden_tag() }}
+            </ol>
+        </div>
+    </nav>
 
-    {% for field in form %}
-        {% if field.widget.input_type != 'hidden' %} {{ field.label }} {% endif %}
-        {{ field }}<br>
-    {% endfor %}
-    <input type="submit" name="Login">
-    {% endif %}
+    <h2> Log into Rackspace </h2>
 
-</form>
+    <pre id="request_code">
+POST https://identity.api.rackspacecloud.com/v2.0/tokens
+Content-Type: application/json</pre>
+    <div id="login_api">
+        <div class="json_display">
+
+            <form class="post_json" method="POST" action="{{ url_for('rackspacecloud.identity_request', new_path='tokens') }}">
+                {{ form.hidden_tag() }}
+                    <pre>
+                    {{ test_dict|format_json_html|safe }}
+                    </pre>
+                <button class="btn btn-primary">Login stuff</button>
+
+            </form>
+        </div>
+    </div>
+    <h2> Use Auth Token </h2>
+
+    Use this if you really don't trust us. Tokens are only valid for the life span, usually 24 hours.
+    <div id="login_api">
+    <pre id="request_code">
+POST https://identity.api.rackspacecloud.com/v2.0/tokens
+Content-Type: application/json</pre>
+        <div id="login_api">
+
+        <div class="json_display">
+            <form class="post_json" method="POST" action="{{ url_for('rackspacecloud.identity_request', new_path='tokens') }}">
+                {{ form_validate.hidden_tag() }}
+                    <pre>
+                    {{ use_token_dict|format_json_html|safe }}
+                    </pre>
+                <button class="btn btn-primary">Use Token</button>
+
+            </form>
+
+        </div>
+    </div>
 {% endblock %}

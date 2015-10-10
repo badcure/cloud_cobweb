@@ -7,6 +7,17 @@
 
 
 {% block main_body %}
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <ol class="breadcrumb navbar-right">
+                <li class="active"><a href="{{ url_for('rackspacecloud.rackspace_index') }}">Home</a></li>
+                <li class="active"><a href="{{ url_for('rackspacecloud.logout_fn') }}">Logout</a></li>
+                <li class="active"><a href="{{ url_for('rackspacecloud.auth_token_view') }}">View Token</a></li>
+
+            </ol>
+        </div>
+    </nav>
+
     {% if g.user_info.token %}
         <span class="auth_expiretime">Expires in :</span>
         {% if g.user_info.token_seconds_left <= 0 %}
@@ -31,26 +42,6 @@
     {%  endif %}
 
     <div id="complete_service_catalog">
-        {% if not g.user_info.token %}
-            <h2> Log into Rackspace </h2>
-
-            <pre id="request_code">
-POST https://identity.api.rackspacecloud.com/v2.0/tokens
-Content-Type: application/json</pre>
-            <div id="login_api">
-                <div class="json_display">
-
-                <form class="post_json" method="POST" action="{{ url_for('rackspacecloud.identity_request', new_path='tokens') }}">
-                    {{ form.hidden_tag() }}
-                    <pre>
-                    {{ test_dict|format_json_html|safe }}
-                    </pre>
-                    <button class="btn btn-primary">Login stuff</button>
-                </form>
-                </div>
-            </div>
-
-        {% else %}
         <h2>Rackspace Services</h2>
         <ul>
             <table class="table-striped table">
@@ -108,7 +99,6 @@ Content-Type: application/json</pre>
             </tbody>
             </table>
         </ul>
-        {%  endif %}
     </div>
 
 {% endblock %}

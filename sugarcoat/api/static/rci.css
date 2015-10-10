@@ -179,3 +179,5 @@ pre {
 .string {
     color: darkgreen;
 }
+
+body { padding-top: 70px; }

@@ -1,14 +1,19 @@
 {% extends 'base.html' %}
 {% if json_result.status_code < 299 %}
     {% set header_class="bg-success" %}
+    {% set label_class="label-success" %}
 {% elif json_result.status_code < 399 %}
     {% set header_class="bg-info" %}
+    {% set label_class="label-info" %}
 {% elif json_result.status_code < 499 %}
     {% set header_class="bg-warning" %}
+    {% set label_class="label-warning" %}
 {% elif json_result.status_code < 599 %}
     {% set header_class="bg-danger" %}
+    {% set label_class="label-danger" %}
 {% else %}
     {% set header_class="bg-danger" %}
+    {% set label_class="label-danger" %}
 {% endif %}
 
 {% if json_result.response_time < 0.5 %}
@@ -23,6 +28,21 @@
 
 
 {% block main_body %}
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <button class="btn btn-default navbar-btn" type="button" data-toggle="collapse" data-target="#request_header">Request Headers</button>
+            <button class="btn {% if json_result.request_body  %}btn-default{% else %}btn-disabled{% endif %} navbar-btn" type="button" data-toggle="collapse" data-target="#request_body">Request Body</button>
+            <button class="btn btn-primary navbar-btn" type="button" data-toggle="collapse" data-target="#response_header">Response Header</button>
+            <button class="btn {% if json_result.response_body  %}btn-primary{% else %}btn-disabled{% endif %} navbar-btn" type="button" data-toggle="collapse" data-target="#response_body">Response Body</button>
+            <button class="btn btn-primary navbar-btn" type="button" data-toggle="collapse" data-target="#additional_urls">Additional URLs</button>
+            <ol class="breadcrumb navbar-right">
+                <li><a href="{{ url_for('rackspacecloud.rackspace_index') }}">Home</a></li>
+                <li>{{ g.list_obj.catalog_key }}</li>
+                <li class="active"><a href="{{ url_for('rackspacecloud.service_catalog_list', servicename=g.list_obj.catalog_key, region=region) }}">{{ region }}</a></li>
+            </ol>
+        </div>
+    </nav>
+
     <dl class="dl-horizontal">
         <dt>URL</dt>
         <dd>{{ request.url }}</dd>
@@ -107,7 +127,7 @@
                         <a data-toggle="collapse" href="#additional_urls" aria-controls="additional_urls" aria-expanded="false">Additional URL</a>
                     </h4>
                 </div>
-                <div id="additional_urls" class="collapse in">
+                <div id="additional_urls" class="collapse">
                     <div class="panel-body">
                         <table class="table table-hover">
                             <thead>
@@ -117,11 +137,11 @@
                             {% for url in additional_urls.links.populated %}
                                 {% if 'href' in url %}
                                     <tr class="success">
-                                        <td><button type="button" class="btn btn-primary">GET</button></td>
+                                        <td><span class="label label-success">GET</span></td>
                                         <td>{{ url|safe }}</td>
                                     </tr>
                                 {% else %}
-                                    <tr><td><button type="button" class="btn btn-default">GET</button></td>
+                                    <tr><td><span class="label label-default">GET</span></td>
                                         <td>{{ url|safe }}</td></tr>
                                 {% endif %}
                             {% endfor %}
