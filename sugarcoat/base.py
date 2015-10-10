@@ -188,6 +188,7 @@ class APIBase(object):
         kwargs['headers']['User-Agent'] = '{0} https://sugarcoat.in'.format(kwargs['headers'].get(
             'User-Agent', requests.utils.default_user_agent()))
         kwargs['headers']['Connection'] = kwargs['headers'].get('Connection', 'close')
+        kwargs['timeout'] = kwargs.get('timeout', 10)
         return getattr(requests, method.lower())(**kwargs)
 
     @classmethod
