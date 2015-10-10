@@ -144,7 +144,7 @@ class Identity(RackAPI):
         if not self._auth:
             return list()
         if region:
-            region = region.upper()
+            region = region.lower()
         self.prepare_auth()
         result = copy.deepcopy(self._auth['access']['serviceCatalog'])
         if name is not None:
@@ -169,7 +169,7 @@ class Identity(RackAPI):
             for service in result:
                 new_endpoint = list()
                 for endpoint in service['endpoints']:
-                    if endpoint.get('region') in allowed_regions:
+                    if endpoint.get('region').lower() in allowed_regions:
                         new_endpoint.append(endpoint)
                 service['endpoints'] = new_endpoint
                 if service['endpoints']:
@@ -234,9 +234,9 @@ class Identity(RackAPI):
         for service in self._auth['access']['serviceCatalog']:
             service_name = service['name']
             for endpoint in service['endpoints']:
-                result_list.append((endpoint['publicURL'], (service_name, endpoint.get('region', 'all'))))
+                result_list.append((endpoint['publicURL'], (service_name, endpoint.get('region', 'all').lower())))
                 result_list.append(('/'.join(endpoint['publicURL'].split('/')[0:3]), (service_name, endpoint.get(
-                    'region', 'all'), '__root__')))
+                    'region', 'all').lower(), '__root__')))
             result_list.append(('https://identity.api.rackspacecloud.com/v2.0', ('cloudIdentity', 'all')))
             result_list.append(('https://identity.api.rackspacecloud.com', ('cloudIdentity', 'all', '__root__')))
 
