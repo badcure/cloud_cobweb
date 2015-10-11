@@ -25,7 +25,7 @@ def page_not_found(e):
 
 @app.route('/')
 def index():
-    return flask.Response(flask.render_template('main_index.html'))
+    return flask.Response(flask.render_template('index.html'))
 
 app.url_map.add(Rule('/cake_is_a_lie.html', endpoint='cake_lie_view'))
 

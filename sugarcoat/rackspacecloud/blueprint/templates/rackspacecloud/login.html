@@ -5,7 +5,7 @@
         <div class="container">
             <ol class="breadcrumb navbar-right">
                 {% if g.user_info and g.user_info.token %}
-                    <li class="active"><a href="{{ url_for('rackspacecloud.rackspace_index') }}">Home</a></li>
+                    <li class="active"><a href="{{ url_for('rackspacecloud.index') }}">Home</a></li>
                     <li class="active"><a href="{{ url_for('rackspacecloud.logout_fn') }}">Logout</a></li>
                     <li class="active"><a href="{{ url_for('rackspacecloud.auth_token_view') }}">View Token</a></li>
                 {% else %}

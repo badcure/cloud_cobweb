@@ -10,7 +10,7 @@ import sugarcoat.rackspacecloud.base
 
 
 app = flask.Blueprint('rackspacecloud', __name__, url_prefix='/rackspacecloud', static_folder='static',
-                      template_folder='templates')
+                      template_folder='./templates')
 
 
 class LoginFormAPI(flask_wtf.Form):
@@ -94,7 +94,7 @@ def after_request(response):
 @app.errorhandler(404)
 def page_not_found(e):
     if not flask.g.user_info or not flask.g.user_info.token:
-        return flask.redirect(flask.url_for('rackspacecloud.rackspace_index'))
+        return flask.redirect(flask.url_for('rackspacecloud.index'))
 
 
 @app.route('/cloudIdentity/all', methods=['GET', 'POST', 'PUT', 'DELETE'])
@@ -170,7 +170,7 @@ def identity_request(new_path=''):
 @app.route('/<string:servicename>/<string:region>/<path:new_path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def service_catalog_list(servicename,region,new_path=''):
     if not flask.g.user_info.token:
-        return flask.redirect(flask.url_for('rackspacecloud.rackspace_index'))
+        return flask.redirect(flask.url_for('rackspacecloud.index'))
     flask.g.list_obj = sugarcoat.rackspacecloud.services.get_catalog_api(servicename)(flask.g.user_info)
     query_args = ''
     new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
@@ -227,7 +227,7 @@ def login_view():
     if flask.request.method == 'POST' and template_info['form_validate'].validate_on_submit():
         token = template_info['form_validate'].token.data
         flask.g.user_info = sugarcoat.rackspacecloud.base.Identity()
-    return flask.Response(flask.render_template('login.html', **template_info))
+    return flask.Response(flask.render_template('rackspacecloud/login.html', **template_info))
 
 
 @app.route('/refresh_auth', methods=['GET'])
@@ -259,15 +259,16 @@ def region_view(region):
     if not flask.g.user_info.token:
         return flask.redirect(flask.url_for('rackspacecloud.login_view'))
 
-    return flask.Response(flask.render_template('region.html', region=region))
+    return flask.Response(flask.render_template('rackspacecloud/region.html', region=region))
 
 
 @app.route('/', methods=['GET', 'POST'])
-def rackspace_index():
+def index():
     if not flask.g.user_info.token:
         return flask.redirect(flask.url_for('rackspacecloud.login_view'))
     template_info = dict()
 
 
     template_info['message'] = ''
-    return flask.Response(flask.render_template('index.html', **template_info))
+
+    return flask.Response(flask.render_template('rackspacecloud/index.html', **template_info))
