@@ -169,7 +169,7 @@ class Identity(RackAPI):
             for service in result:
                 new_endpoint = list()
                 for endpoint in service['endpoints']:
-                    if endpoint.get('region').lower() in allowed_regions:
+                    if endpoint.get('region', 'NO REGION').lower() in allowed_regions:
                         new_endpoint.append(endpoint)
                 service['endpoints'] = new_endpoint
                 if service['endpoints']:
