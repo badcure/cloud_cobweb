@@ -29,7 +29,7 @@ def index():
 
 app.url_map.add(Rule('/cake_is_a_lie.html', endpoint='cake_lie_view'))
 
-@app.endpoint('/cake_lie_view', )
+@app.endpoint('cake_lie_view', )
 def cake_lie_view(response_code=200):
     should_log = True
     restful_result = {"random":
