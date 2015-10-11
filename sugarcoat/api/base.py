@@ -6,6 +6,7 @@ from sugarcoat.base import SUGARCOAT_RESTFUL_KEY
 from werkzeug.routing import Rule
 
 app = flask.Flask(__name__)
+
 ENVIRON_SECRETKEY_NAME = 'sugarcoat_secret'
 if ENVIRON_SECRETKEY_NAME in os.environ:
     print("Using environment {0} for secret_key".format(ENVIRON_SECRETKEY_NAME))
@@ -29,14 +30,6 @@ app.url_map.add(Rule('/cake_is_a_lie.html', endpoint='cake_lie_view'))
 @app.endpoint('/cake_lie_view', )
 def cake_lie_view(response_code=200):
     should_log = True
-    if should_log:
-        app.logger.info("Request {1} {0} was provided".format(flask.request.url, flask.request.method))
-        app.logger.info("Headers =====\n{0}\n====".format(flask.request.headers))
-
-        if flask.request.args:
-            app.logger.info("Args =====\n{0}\n====".format(flask.request.args))
-        if flask.request.data:
-            app.logger.info("Data =====\n{0}\n====".format(flask.request.get_data(as_text=True)))
     restful_result = {"random":
              {"status": response_code,
               "message": "Not sure how you got here.",
@@ -56,9 +49,14 @@ def cake_lie_view(response_code=200):
                   'url': str(flask.request.url),
                   'args': str(dict(flask.request.args)),
                   'data': flask.request.get_data(as_text=True),
+                  'form': flask.request.form,
+
                   'headers': str(flask.request.headers),
+                  'source_ipaddress': str(flask.request.remote_addr),
                   'info_logged': should_log
               }
               }
          }
+    if should_log:
+        app.logger.info(flask.json.dumps(restful_result))
     return flask.jsonify(restful_result)
