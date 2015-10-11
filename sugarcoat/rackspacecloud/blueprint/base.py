@@ -96,9 +96,8 @@ def page_not_found(e):
         return flask.redirect(flask.url_for('rackspacecloud.rackspace_index'))
 
 
-@app.route('/cloudIdentity/all', methods=['GET', 'POST'])
-@app.route('/cloudIdentity/all/', methods=['GET', 'POST'])
-@app.route('/cloudIdentity/all/<path:new_path>', methods=['GET', 'POST'])
+@app.route('/cloudIdentity/all', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@app.route('/cloudIdentity/all/<path:new_path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def identity_request(new_path=''):
     method = flask.request.method
     request_data = flask.request.data
@@ -165,9 +164,9 @@ def identity_request(new_path=''):
     return display_json(response=flask.g.api_response, template_kwargs=template_kwargs, region='all', **kwargs)
 
 
-@app.route('/<string:servicename>/<string:region>')
-@app.route('/<string:servicename>/<string:region>/')
-@app.route('/<string:servicename>/<string:region>/<path:new_path>')
+@app.route('/<string:servicename>/<string:region>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@app.route('/<string:servicename>/<string:region>/', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@app.route('/<string:servicename>/<string:region>/<path:new_path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def service_catalog_list(servicename,region,new_path=''):
     if not flask.g.user_info.token:
         return flask.redirect(flask.url_for('rackspacecloud.rackspace_index'))

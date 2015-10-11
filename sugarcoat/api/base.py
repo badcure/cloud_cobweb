@@ -15,4 +15,5 @@ app.jinja_options['extensions'].append('jinja2.ext.do')
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return flask.redirect('/')
+    print("here")
+    return flask.Response(flask.render_template('cake_is_a_lie.html'), status=404)

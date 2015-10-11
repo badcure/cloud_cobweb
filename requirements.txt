@@ -1,4 +1,4 @@
-flask
+https://github.com/mitsuhiko/flask/tarball/master#egg=flask
 requests
 Flask-WTF
 flask-restful
