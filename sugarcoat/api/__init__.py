@@ -4,7 +4,3 @@ import sugarcoat.api.template_filters
 import sugarcoat.rackspacecloud.blueprint.base
 
 app.register_blueprint(sugarcoat.rackspacecloud.blueprint.base.app)
-
-@app.route('/')
-def index():
-    return flask.redirect('/rackspacecloud')
