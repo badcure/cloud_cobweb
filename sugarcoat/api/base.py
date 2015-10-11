@@ -36,7 +36,7 @@ def cake_lie_view(response_code=200):
         if flask.request.args:
             app.logger.info("Args =====\n{0}\n====".format(flask.request.args))
         if flask.request.data:
-            app.logger.info("Data =====\n{0}\n====".format(flask.request.data))
+            app.logger.info("Data =====\n{0}\n====".format(flask.request.get_data(as_text=True)))
     restful_result = {"random":
              {"status": response_code,
               "message": "Not sure how you got here.",
@@ -55,7 +55,7 @@ def cake_lie_view(response_code=200):
                   'method': str(flask.request.method),
                   'url': str(flask.request.url),
                   'args': str(dict(flask.request.args)),
-                  'data': str(flask.request.data),
+                  'data': flask.request.get_data(as_text=True),
                   'headers': str(flask.request.headers),
                   'info_logged': should_log
               }
