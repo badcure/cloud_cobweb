@@ -7,7 +7,39 @@
 
 
 {% block main_body %}
-asdf
+    <table class="table table-striped">
+       <thead><tr>
+           <th>Service</th>
+           <th>API Documentation</th>
+           <th>Help Info</th>
+       </tr></thead>
+        <tbody>
+            <tr>
+                <td>
+                    <a href="{{ url_for('rackspacecloud.rackspace_index') }}">Rackspace</a>
+                </td>
+                <td>
+                    <a href="http://docs.rackspace.com"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Rackspace API Doc</a>
+                </td>
+                <td>
+                    <a href="https://pitchfork.cloudapi.co/"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>https://pitchfork.cloudapi.co/</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Mailgun
+                </td>
+                <td>
+                    <a href="https://documentation.mailgun.com/api_reference.html#api-reference"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Mailgun API Doc</a>
+                </td>
+                <td>
+                    <a href="https://documentation.mailgun.com/user_manual.html#smtp-relay"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Configure Relay</a>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
 
 {% endblock %}
 

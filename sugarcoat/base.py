@@ -4,7 +4,7 @@ import time
 import json
 
 MASK_HEADERS = ('X-Auth-Token',)
-
+SUGARCOAT_RESTFUL_KEY = 'sugarcoat_metadata'
 
 class APIResult(dict):
     _identity_obj = None
@@ -73,7 +73,7 @@ class APIResult(dict):
         result = self['result']
 
         if isinstance(result, dict):
-            result['_sugarcoat_relations'] = self.get_sorted_relations()
+            result[SUGARCOAT_RESTFUL_KEY] = self.get_sorted_relations()
         return result
 
     def add_relation(self, url, region=None, resource_id=None, resource_name=None, resource_type=None):
@@ -106,10 +106,10 @@ class APIResult(dict):
         result = self['result']
         if isinstance(result, dict):
             result = copy.deepcopy(self['result'])
-            result['_sugarcoat_relations'] = self.get_sorted_relations()
+            result[SUGARCOAT_RESTFUL_KEY] = self.get_sorted_relations()
         elif isinstance(result, list):
             result = copy.deepcopy(self['result'])
-            result.append({'_sugarcoat_relations': self.get_sorted_relations()})
+            result.append({SUGARCOAT_RESTFUL_KEY: self.get_sorted_relations()})
 
         return result
 

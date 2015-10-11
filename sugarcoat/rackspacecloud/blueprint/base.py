@@ -9,7 +9,8 @@ import sugarcoat.api.base
 import sugarcoat.rackspacecloud.base
 
 
-app = flask.Blueprint('rackspacecloud', __name__, url_prefix='/rackspacecloud')
+app = flask.Blueprint('rackspacecloud', __name__, url_prefix='/rackspacecloud', static_folder='static',
+                      template_folder='templates')
 
 
 class LoginFormAPI(flask_wtf.Form):

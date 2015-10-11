@@ -2,7 +2,7 @@
 
 {% set header_class="auth_header" %}
 {% set resource_list=['cloudBlockStorage', 'cloudImages', 'cloudServersOpenStack'] %}
-{% set uptime_list=['cloudMonitoring', 'autoscale', 'cloudLoadBalancers'] %}
+{% set uptime_list=['cloudMonitoring', 'autoscale', 'cloudLoadBalancers', 'cloudBackup'] %}
 {% set configuration_services=['cloudOrchestration'] %}
 {% set service_list=['cloudBigData', 'cloudBackup', 'cloudFeeds', 'cloudMonitoring', 'cloudMetrics'] %}
 {% set platform_services=['cloudDatabases', 'cloudQueues', 'cloudSites', 'cloudDNS', 'cloudNetworks', 'cloudLoadBalancers', 'rackCDN', 'cloudFilesCDN', 'cloudFiles'] %}
@@ -32,6 +32,23 @@
 
     <div id="complete_service_catalog">
         <h2>Rackspace Services</h2>
+        <h3>Authentication</h3>
+        <table class="table-striped table">
+            <thead><tr><th>Service Name</th><th>URL</th></tr></thead>
+            <tbody>
+
+                <tr>
+                    <td>
+                        cloudIdentity (not in service token)
+                    </td>
+                    <td colspan="6">
+                        <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename='cloudIdentity', region='all') }}">https://identity.api.rackspacecloud.com</a>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+
         <h3>Servers</h3>
         <table class="table-striped table">
         <thead><tr><th>Service Name</th><th>URL</th></tr></thead>

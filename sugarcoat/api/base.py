@@ -2,6 +2,7 @@ import flask
 import string
 import random
 import os
+from sugarcoat.base import SUGARCOAT_RESTFUL_KEY
 
 app = flask.Flask(__name__)
 ENVIRON_SECRETKEY_NAME = 'sugarcoat_secret'
@@ -27,6 +28,7 @@ def cake_lie_view():
     restful_result = {"random":
              {"status": 404,
               "message": "Not sure how you got here.",
+              SUGARCOAT_RESTFUL_KEY:{
               "links": [
                   {"rel": "mouse breaker", "href": 'http://orteil.dashnet.org/cookieclicker/'},
                   {"rel": "browser mmo", "href": 'http://agar.io/'},
@@ -37,6 +39,6 @@ def cake_lie_view():
                   {"rel": "bookmark", "href": 'https://sugarcoat.in'},
                   {"rel": "self", "href": 'https://sugarcoat.in/cake_is_a_lie.html'}
               ]
-              }
+              }}
          }
     return flask.jsonify(restful_result)

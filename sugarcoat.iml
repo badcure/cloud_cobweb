@@ -22,6 +22,8 @@
       <list>
         <option value="$MODULE_DIR$/sugarcoat/api/templates" />
         <option value="$MODULE_DIR$/sugarcoat/api/static" />
+        <option value="$MODULE_DIR$/sugarcoat/rackspacecloud/blueprint/templates" />
+        <option value="$MODULE_DIR$/sugarcoat/rackspacecloud/blueprint/static" />
       </list>
     </option>
   </component>
