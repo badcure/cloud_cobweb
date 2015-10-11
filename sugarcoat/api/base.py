@@ -6,6 +6,8 @@ from sugarcoat.base import SUGARCOAT_RESTFUL_KEY
 from werkzeug.routing import Rule
 
 app = flask.Flask(__name__)
+if os.path.isfile('/etc/sugarcoat.cfg'):
+    app.config.from_pyfile('/etc/sugarcoat.cfg')
 
 ENVIRON_SECRETKEY_NAME = 'sugarcoat_secret'
 if ENVIRON_SECRETKEY_NAME in os.environ:
