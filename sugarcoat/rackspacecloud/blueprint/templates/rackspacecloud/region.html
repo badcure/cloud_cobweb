@@ -67,7 +67,7 @@
                                 <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region=g.services[role.name].only_region) }}">{{ endpoint.publicURL }}</a>
                             </td>
                         </tr>
-                    {% elif endpoint.region.upper() == region.upper() %}
+                    {% elif endpoint.region.lower() == region.lower() %}
                         <tr>
                             <td>
                                 {{ role.name }}
@@ -101,7 +101,7 @@
                                     <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="DFW") }}">{{ endpoint.publicURL }}</a>
                                 </td>
                             </tr>
-                        {% elif endpoint.region.upper() == region.upper() %}
+                        {% elif endpoint.region.lower() == region.lower() %}
                             <tr>
                                 <td>
                                     {{ role.name }}
@@ -135,7 +135,7 @@
                                     <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="DFW") }}">{{ endpoint.publicURL }}</a>
                                 </td>
                             </tr>
-                        {% elif endpoint.region.upper() == region.upper() %}
+                        {% elif endpoint.region.lower() == region.lower() %}
                             <tr>
                                 <td>
                                     {{ role.name }}
@@ -169,7 +169,7 @@
                                     <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="DFW") }}">{{ endpoint.publicURL }}</a>
                                 </td>
                             </tr>
-                        {% elif endpoint.region.upper() == region.upper() %}
+                        {% elif endpoint.region.lower() == region.lower() %}
                             <tr>
                                 <td>
                                     {{ role.name }}
@@ -203,7 +203,7 @@
                                     <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="DFW") }}">{{ endpoint.publicURL }}</a>
                                 </td>
                             </tr>
-                        {% elif endpoint.region.upper() == region.upper() %}
+                        {% elif endpoint.region.lower() == region.lower() %}
                             <tr>
                                 <td>
                                     {{ role.name }}
@@ -238,7 +238,7 @@
                                     <a href="{{ url_for("rackspacecloud.service_catalog_list", servicename=role.name, region="DFW") }}">{{ endpoint.publicURL }}</a>
                                 </td>
                             </tr>
-                        {% elif endpoint.region.upper() == region.upper() %}
+                        {% elif endpoint.region.lower() == region.lower() %}
                             <tr>
                                 <td>
                                     {{ role.name }}

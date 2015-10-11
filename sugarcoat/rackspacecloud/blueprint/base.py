@@ -29,6 +29,8 @@ class ValidateToken(flask_wtf.Form):
 
 
 def convert_to_related(region, api_result):
+    region = region.lower()
+
     resource_kwargs = api_result.get_resources()
     if 'region' not in resource_kwargs:
         resource_kwargs['region'] = region
@@ -54,6 +56,8 @@ def convert_to_related(region, api_result):
 
 
 def display_json(response, region, template_kwargs=None, **kwargs):
+    region = region.lower()
+
     if not template_kwargs:
         template_kwargs = dict()
 
@@ -169,6 +173,7 @@ def identity_request(new_path=''):
 @app.route('/<string:servicename>/<string:region>/', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @app.route('/<string:servicename>/<string:region>/<path:new_path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def service_catalog_list(servicename,region,new_path=''):
+    region = region.lower()
     if not flask.g.user_info.token:
         return flask.redirect(flask.url_for('rackspacecloud.index'))
     flask.g.list_obj = sugarcoat.rackspacecloud.services.get_catalog_api(servicename)(flask.g.user_info)
