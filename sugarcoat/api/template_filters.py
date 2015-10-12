@@ -4,48 +4,47 @@ import flask
 from . import base
 
 HEADER_LINKS = dict()
-HEADER_LINKS['Content-Encoding'] = dict(
-    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11',
-    gzip='https://en.wikipedia.org/wiki/Gzip')
-HEADER_LINKS['Content-Length'] = dict(
+HEADER_LINKS['content-encoding'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11')
+HEADER_LINKS['content-length'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.13')
-HEADER_LINKS['Vary'] = dict(
+HEADER_LINKS['vary'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.44')
-HEADER_LINKS['Accept-Ranges'] = dict(
+HEADER_LINKS['accept-ranges'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.5')
-HEADER_LINKS['Age'] = dict(
+HEADER_LINKS['age'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.6')
-HEADER_LINKS['Accept-Language'] = dict(
+HEADER_LINKS['accept-language'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4')
-HEADER_LINKS['Accept-Encoding'] = dict(
+HEADER_LINKS['accept-encoding'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3')
-HEADER_LINKS['Accept'] = dict(
+HEADER_LINKS['accept'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1')
-HEADER_LINKS['Last-Modified'] = dict(
+HEADER_LINKS['last-modified'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.29')
-HEADER_LINKS['Connection'] = dict(
+HEADER_LINKS['connection'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.10')
-HEADER_LINKS['Content-Type'] = dict(
+HEADER_LINKS['content-type'] = dict(
     header_key='http://www.w3.org/Protocols/rfc1341/4_Content-Type.html')
-HEADER_LINKS['ETag'] = dict(
+HEADER_LINKS['etag'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19')
-HEADER_LINKS['Content-Language'] = dict(
+HEADER_LINKS['content-language'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.12')
-HEADER_LINKS['Date'] = dict(
+HEADER_LINKS['date'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18')
-HEADER_LINKS['Server'] = dict(
+HEADER_LINKS['server'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.38')
-HEADER_LINKS['Via'] = dict(
+HEADER_LINKS['via'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.45')
-HEADER_LINKS['X-NewRelic-App-Data'] = dict(
+HEADER_LINKS['x-newrelic-app-data'] = dict(
     header_key='https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/cross-application-tracing')
-HEADER_LINKS['X-Auth-Token'] = dict(
+HEADER_LINKS['x-auth-token'] = dict(
     header_key='http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/QuickStart-000.html#submit_API_request')
-HEADER_LINKS['User-Agent'] = dict(
+HEADER_LINKS['user-agent'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.43')
-HEADER_LINKS['Transfer-Encoding'] = dict(
+HEADER_LINKS['transfer-encoding'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.41')
-HEADER_LINKS['Cache-Control'] = dict(
+HEADER_LINKS['cache-control'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9')
 HEADER_LINKS['access-control-allow-origin'] = dict(
     header_key='http://www.w3.org/TR/cors/#access-control-allow-origin-response-header')
@@ -57,7 +56,7 @@ HEADER_LINKS['access-control-allow-credentials'] = dict(
     header_key='http://www.w3.org/TR/cors/#access-control-allow-credentials-response-header')
 HEADER_LINKS['access-control-allow-headers'] = dict(
     header_key='http://www.w3.org/TR/cors/#access-control-allow-headers-response-header')
-HEADER_LINKS['ETag'] = dict(
+HEADER_LINKS['etag'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19')
 
 @base.app.template_filter('format_json_html')
@@ -95,15 +94,15 @@ def format_json_html(obj, iteration=0):
 def print_headers(obj):
     result = ''
     for key, value in obj.items():
-        if key == 'x-trans-id' and 'Repose' in obj.get('Via'):
+        if key.lower() == 'x-trans-id' and 'repose' in obj.get('Via', obj.get('via', '')).lower():
             url = 'https://repose.atlassian.net/wiki/display/REPOSE/Tracing'
             result += '<a href="{url}">{key} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>: '.format(key=key, url=url)
-        elif key in HEADER_LINKS:
-            result += '<a href="{url}">{key} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>: '.format(key=key, url=HEADER_LINKS[key]['header_key'])
+        elif key.lower() in HEADER_LINKS:
+            result += '<a href="{url}">{key} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>: '.format(key=key, url=HEADER_LINKS[key.lower()]['header_key'])
         else:
             result += '{key}: '.format(key=key)
 
-        if key == 'Via' and 'Repose' in value:
+        if key in ['Via', 'via'] and 'repose' in value.lower():
             url = 'https://repose.atlassian.net/wiki/display/REPOSE/Home'
             result += '<a href="{url}">{value} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>\n'.format(value=value, url=url)
         else:
@@ -114,7 +113,7 @@ def print_headers(obj):
 @base.app.template_filter('convert_to_urls')
 def convert_to_urls(result):
     if not isinstance(result, str):
-        result = str(pprint.pformat(result))
+        result = flask.json.dumps(result, indent=2)
     if not flask.g.user_info:
         return result
     if flask.g.list_obj:
@@ -125,7 +124,6 @@ def convert_to_urls(result):
     for url, replace_url_info in flask.g.user_info.url_to_catalog_dict():
         match_url = re.compile("\"({0})/*([^\"]*)\"".format(url))
         if len(replace_url_info) == 2:
-            print(url + "\t" + str(replace_url_info))
             result = match_url.sub(r"<a href='{url_prefix}/{0}/{1}/\2'>\1/\2</a>".format(*replace_url_info, url_prefix=url_prefix), result)
 
     for url, replace_url_info in flask.g.user_info.url_to_catalog_dict():
