@@ -11,26 +11,6 @@ def print_headers(obj):
     return result
 
 
-@sugarcoat.rackspacecloud.blueprint.base.app.template_filter('convert_to_urls')
-def convert_to_urls(result):
-    if not isinstance(result, str):
-        result = str(pprint.pformat(result))
-    if not flask.g.user_info:
-        return result
-    if flask.g.list_obj:
-        for replace_url, replace_url_info in flask.g.list_obj.get_auth().url_to_catalog_dict():
-            result = result.replace('/' + '/'.join(replace_url_info), replace_url)
-
-    for url, replace_url_info in flask.g.user_info.url_to_catalog_dict():
-        match_url = re.compile("'({0})/*([^']*)'".format(url))
-        if len(replace_url_info) == 3:
-            result = match_url.sub(r"<a href='/{0}/{1}/{2}/\2'>\1/\2</a>".format(*replace_url_info), result)
-        else:
-            result = match_url.sub(r"<a href='/{0}/{1}/\2'>\1/\2</a>".format(*replace_url_info), result)
-
-    return result
-
-
 def convert_to_related(region, api_result):
     resource_kwargs = api_result.get_resources()
     if 'region' not in resource_kwargs:

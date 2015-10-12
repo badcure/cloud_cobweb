@@ -52,12 +52,20 @@ def convert_to_urls(result):
         for replace_url, replace_url_info in flask.g.list_obj.get_auth().url_to_catalog_dict():
             result = result.replace('/' + '/'.join(replace_url_info), replace_url)
     url_prefix = flask.current_app.blueprints[flask.request.blueprint].url_prefix
+
     for url, replace_url_info in flask.g.user_info.url_to_catalog_dict():
-        match_url = re.compile("'({0})/*([^']*)'".format(url))
+        match_url = re.compile("\"({0})/*([^\"]*)\"".format(url))
+        if len(replace_url_info) == 2:
+            print(url + "\t" + str(replace_url_info))
+            result = match_url.sub(r"<a href='{url_prefix}/{0}/{1}/\2'>\1/\2</a>".format(*replace_url_info, url_prefix=url_prefix), result)
+
+    for url, replace_url_info in flask.g.user_info.url_to_catalog_dict():
+        match_url = re.compile("\"({0})/*([^\"]*)\"".format(url))
         if len(replace_url_info) == 3:
             result = match_url.sub(r"<a href='{url_prefix}/{0}/{1}/{2}/\2'>\1/\2</a>".format(*replace_url_info, url_prefix=url_prefix), result)
-        else:
-            result = match_url.sub(r"<a href='{url_prefix}/{0}/{1}/\2'>\1/\2</a>".format(*replace_url_info, url_prefix=url_prefix), result)
+
+    match_url = re.compile("\"((https?:\/\/)([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?)\"")
+    result = match_url.sub(r'"<a href="\1">\1 <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>"', result)
 
     return result
 

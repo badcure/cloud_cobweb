@@ -237,7 +237,7 @@ class Identity(RackAPI):
                 result_list.append((endpoint['publicURL'], (service_name, endpoint.get('region', 'all').lower())))
                 result_list.append(('/'.join(endpoint['publicURL'].split('/')[0:3]), (service_name, endpoint.get(
                     'region', 'all').lower(), '__root__')))
-            result_list.append(('https://identity.api.rackspacecloud.com/v2.0', ('cloudIdentity', 'all')))
-            result_list.append(('https://identity.api.rackspacecloud.com', ('cloudIdentity', 'all', '__root__')))
+        result_list.append(('https://identity.api.rackspacecloud.com/v2.0', ('cloudIdentity', 'all')))
+        result_list.append(('https://identity.api.rackspacecloud.com', ('cloudIdentity', 'all', '__root__')))
 
         return sorted(result_list, key=lambda key_pair: -(len(key_pair[1])*100+len(key_pair[0])))

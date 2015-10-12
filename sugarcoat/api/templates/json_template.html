@@ -76,7 +76,12 @@
             </div>
             <div id="request_body" class="collapse">
                 <div class="panel-body">
-                    <pre>{{ json_result.request_body }}</pre>
+                    {% if not json_result.request_body  %}
+                        No body was sent.
+                    {% else %}
+                        <pre>{{ json_result.request_body }}</pre>
+                    {% endif %}
+
                 </div>
             </div>
         </div>
@@ -104,13 +109,18 @@
             </div>
             <div id="response_body" class="collapse in">
                 <div class="panel-body">
-                    {% if json_result.safe_html %}
+                    {% if json_result.safe_html and 'clean_response' not in request.args %}
                         <div class="json_display">
                             <pre id="display_code">{{ json_result.display_with_relation|convert_to_urls|safe }}</pre>
                         </div>
-                    {% else %}
+                    {% elif 'clean_response' not in request.args %}
                         <div class="json_display">
                             <pre id="display_code">{{ json_result.display_with_relation|convert_to_urls }}</pre>
+                        </div>
+                    {% else %}
+                        <div class="json_display">
+
+                            <pre id="display_code">{{ json_result.display_with_relation }}</pre>
                         </div>
                     {% endif %}
                 </div>
