@@ -95,7 +95,7 @@
             </div>
             <div id="response_header" class="collapse">
                 <div class="panel-body">
-                    <pre>{{ json_result.response_headers|print_headers }}</pre>
+                    <pre>{{ json_result.response_headers|print_headers|safe }}</pre>
                 </div>
             </div>
         </div>

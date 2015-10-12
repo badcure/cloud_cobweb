@@ -3,6 +3,47 @@ import pprint
 import flask
 from . import base
 
+RESPONSE_HEADER = dict()
+RESPONSE_HEADER['Content-Encoding'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11',
+    gzip='https://en.wikipedia.org/wiki/Gzip')
+RESPONSE_HEADER['Content-Length'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.13')
+RESPONSE_HEADER['Vary'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.44')
+RESPONSE_HEADER['Accept-Ranges'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.5')
+RESPONSE_HEADER['Age'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.6')
+RESPONSE_HEADER['Accept-Language'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4')
+RESPONSE_HEADER['Accept-Encoding'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3')
+RESPONSE_HEADER['Accept'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1')
+RESPONSE_HEADER['Last-Modified'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.29')
+RESPONSE_HEADER['Connection'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.10')
+RESPONSE_HEADER['Content-Type'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc1341/4_Content-Type.html')
+RESPONSE_HEADER['ETag'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19')
+RESPONSE_HEADER['Content-Language'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.12')
+RESPONSE_HEADER['Date'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18')
+RESPONSE_HEADER['Server'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.38')
+RESPONSE_HEADER['Via'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.45')
+RESPONSE_HEADER['X-NewRelic-App-Data'] = dict(
+    header_key='https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/cross-application-tracing')
+RESPONSE_HEADER['ETag'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19')
+RESPONSE_HEADER['ETag'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19')
+
 @base.app.template_filter('format_json_html')
 def format_json_html(obj, iteration=0):
     result = ""
@@ -38,7 +79,19 @@ def format_json_html(obj, iteration=0):
 def print_headers(obj):
     result = ''
     for key, value in obj.items():
-        result += '{0}: {1}\n'.format(key, value)
+        if key == 'x-trans-id' and 'Repose' in obj.get('Via'):
+            url = 'https://repose.atlassian.net/wiki/display/REPOSE/Tracing'
+            result += '<a href="{url}">{key} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>: '.format(key=key, url=url)
+        elif key in RESPONSE_HEADER:
+            result += '<a href="{url}">{key} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>: '.format(key=key, url=RESPONSE_HEADER[key]['header_key'])
+        else:
+            result += '{key}: '.format(key=key)
+
+        if key == 'Via' and 'Repose' in value:
+            url = 'https://repose.atlassian.net/wiki/display/REPOSE/Home'
+            result += '<a href="{url}">{value} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>'.format(value=value, url=url)
+        else:
+            result += '{1}\n'.format(key, value)
     return result
 
 
