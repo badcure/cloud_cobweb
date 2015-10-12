@@ -184,7 +184,7 @@ class Identity(RackAPI):
 
     def display_safe(self):
         result_dict = copy.deepcopy(self._auth)
-        result_dict['access']['token']['id'] = '<masked>'
+        result_dict['access']['token']['id'] = 'MASKED INFO'
         return result_dict
 
     def roles(self):

@@ -65,9 +65,9 @@ class APIResult(dict):
         if not show_confidential:
             for header_name in MASK_HEADERS:
                 if header_name in self['request_headers']:
-                    self['request_headers'][header_name] = '<masked>'
+                    self['request_headers'][header_name] = 'MASKED INFO'
                 if header_name in self['response_headers']:
-                    self['response_headers'][header_name] = '<masked>'
+                    self['response_headers'][header_name] = 'MASKED INFO'
 
     def pre_html_result(self):
         result = self['result']

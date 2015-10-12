@@ -158,7 +158,7 @@ def identity_request(new_path=''):
         additional_headers=additional_headers, show_confidential=flask.request.args.get('show_confidential', False))
     if flask.request.method == 'POST' and (form.validate_on_submit() or form_validate.validate_on_submit()):
         if not flask.request.args.get('show_confidential', False):
-            flask.g.api_response['request_body'] = flask.g.api_response['request_body'].replace('"'+form.password.data+'"', '"<masked>"')
+            flask.g.api_response['request_body'] = flask.g.api_response['request_body'].replace('"'+form.password.data+'"', '"MASKED INFO"')
         if flask.g.api_response['status_code'] == 200:
             flask.session['user_info'] = flask.g.api_response['result']
             flask.g.user_info = sugarcoat.rackspacecloud.base.Identity(flask.session['user_info'])

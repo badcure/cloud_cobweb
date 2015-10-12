@@ -3,45 +3,61 @@ import pprint
 import flask
 from . import base
 
-RESPONSE_HEADER = dict()
-RESPONSE_HEADER['Content-Encoding'] = dict(
+HEADER_LINKS = dict()
+HEADER_LINKS['Content-Encoding'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11',
     gzip='https://en.wikipedia.org/wiki/Gzip')
-RESPONSE_HEADER['Content-Length'] = dict(
+HEADER_LINKS['Content-Length'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.13')
-RESPONSE_HEADER['Vary'] = dict(
+HEADER_LINKS['Vary'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.44')
-RESPONSE_HEADER['Accept-Ranges'] = dict(
+HEADER_LINKS['Accept-Ranges'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.5')
-RESPONSE_HEADER['Age'] = dict(
+HEADER_LINKS['Age'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.6')
-RESPONSE_HEADER['Accept-Language'] = dict(
+HEADER_LINKS['Accept-Language'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4')
-RESPONSE_HEADER['Accept-Encoding'] = dict(
+HEADER_LINKS['Accept-Encoding'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3')
-RESPONSE_HEADER['Accept'] = dict(
+HEADER_LINKS['Accept'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1')
-RESPONSE_HEADER['Last-Modified'] = dict(
+HEADER_LINKS['Last-Modified'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.29')
-RESPONSE_HEADER['Connection'] = dict(
+HEADER_LINKS['Connection'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.10')
-RESPONSE_HEADER['Content-Type'] = dict(
+HEADER_LINKS['Content-Type'] = dict(
     header_key='http://www.w3.org/Protocols/rfc1341/4_Content-Type.html')
-RESPONSE_HEADER['ETag'] = dict(
+HEADER_LINKS['ETag'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19')
-RESPONSE_HEADER['Content-Language'] = dict(
+HEADER_LINKS['Content-Language'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.12')
-RESPONSE_HEADER['Date'] = dict(
+HEADER_LINKS['Date'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18')
-RESPONSE_HEADER['Server'] = dict(
+HEADER_LINKS['Server'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.38')
-RESPONSE_HEADER['Via'] = dict(
+HEADER_LINKS['Via'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.45')
-RESPONSE_HEADER['X-NewRelic-App-Data'] = dict(
+HEADER_LINKS['X-NewRelic-App-Data'] = dict(
     header_key='https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/cross-application-tracing')
-RESPONSE_HEADER['ETag'] = dict(
-    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19')
-RESPONSE_HEADER['ETag'] = dict(
+HEADER_LINKS['X-Auth-Token'] = dict(
+    header_key='http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/QuickStart-000.html#submit_API_request')
+HEADER_LINKS['User-Agent'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.43')
+HEADER_LINKS['Transfer-Encoding'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.41')
+HEADER_LINKS['Cache-Control'] = dict(
+    header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9')
+HEADER_LINKS['access-control-allow-origin'] = dict(
+    header_key='http://www.w3.org/TR/cors/#access-control-allow-origin-response-header')
+HEADER_LINKS['access-control-max-age'] = dict(
+    header_key='http://www.w3.org/TR/cors/#access-control-max-age-response-header')
+HEADER_LINKS['access-control-allow-methods'] = dict(
+    header_key='http://www.w3.org/TR/cors/#access-control-allow-methods-response-header')
+HEADER_LINKS['access-control-allow-credentials'] = dict(
+    header_key='http://www.w3.org/TR/cors/#access-control-allow-credentials-response-header')
+HEADER_LINKS['access-control-allow-headers'] = dict(
+    header_key='http://www.w3.org/TR/cors/#access-control-allow-headers-response-header')
+HEADER_LINKS['ETag'] = dict(
     header_key='http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.19')
 
 @base.app.template_filter('format_json_html')
@@ -82,14 +98,14 @@ def print_headers(obj):
         if key == 'x-trans-id' and 'Repose' in obj.get('Via'):
             url = 'https://repose.atlassian.net/wiki/display/REPOSE/Tracing'
             result += '<a href="{url}">{key} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>: '.format(key=key, url=url)
-        elif key in RESPONSE_HEADER:
-            result += '<a href="{url}">{key} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>: '.format(key=key, url=RESPONSE_HEADER[key]['header_key'])
+        elif key in HEADER_LINKS:
+            result += '<a href="{url}">{key} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>: '.format(key=key, url=HEADER_LINKS[key]['header_key'])
         else:
             result += '{key}: '.format(key=key)
 
         if key == 'Via' and 'Repose' in value:
             url = 'https://repose.atlassian.net/wiki/display/REPOSE/Home'
-            result += '<a href="{url}">{value} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>'.format(value=value, url=url)
+            result += '<a href="{url}">{value} <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>\n'.format(value=value, url=url)
         else:
             result += '{1}\n'.format(key, value)
     return result
