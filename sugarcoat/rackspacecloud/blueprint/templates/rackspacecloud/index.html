@@ -49,8 +49,8 @@
     {%  endif %}
 
     <div id="complete_service_catalog">
-        <h2>Rackspace Services</h2>
-        <ul>
+        <h1>APIs</h1>
+        <h2>Service Token Endpoints</h2>
             <table class="table-striped table">
             <thead><tr><th>Service Name</th><th>DFW</th><th>IAD</th><th>ORD</th><th>LON</th><th>HKG</th><th>SYD</th></tr></thead>
             <tbody>
@@ -105,7 +105,14 @@
             {% endfor %}
             </tbody>
             </table>
-        </ul>
+        <h2>Other Endpoints</h2>
+        <table class="table-striped table">
+            <thead><tr><th>Service Name</th><th>URL</th></tr></thead>
+            <tbody>
+                <tr><td>cloudIdentity</td><td><a href="{{ url_for("rackspacecloud.service_catalog_list", servicename='cloudIdentity', region="all") }}">https://identity.api.rackspacecloud.com/v2.0/</a></td></tr>
+            </tbody>
+        </table>
+
     </div>
 
 {% endblock %}

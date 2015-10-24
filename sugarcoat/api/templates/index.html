@@ -7,16 +7,17 @@
 
 
 {% block main_body %}
+    <h1>Computer Services</h1>
     <table class="table table-striped">
        <thead><tr>
-           <th>Service</th>
+           <th>Service(Link goes to API)</th>
            <th>API Documentation</th>
            <th>Help Info</th>
        </tr></thead>
         <tbody>
             <tr>
                 <td>
-                    <a href="{{ url_for('rackspacecloud.index') }}">Rackspace</a>
+                    <a href="{{ url_for('rackspacecloud.index') }}"><img src="{{ url_for('static', filename='rackspace/rackspace_logo.png') }}"/></a>
                 </td>
                 <td>
                     <a href="http://docs.rackspace.com"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Rackspace API Doc</a>
@@ -40,6 +41,28 @@
         </tbody>
     </table>
 
+    <h1>Information</h1>
+    <table class="table table-striped">
+        <thead><tr>
+            <th>Service(Link goes to API)</th>
+            <th>API Documentation</th>
+            <th>Help Info</th>
+        </tr></thead>
+        <tbody>
+        <tr>
+            <td>
+                <a href="{{ url_for('rackspacecloud.index') }}"><img src="{{ url_for('static', filename='openweathermap/openweathermap_logo.png') }}"/>OpenWeatherMap</a>
+            </td>
+            <td>
+                <a href="http://openweathermap.org/api"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>http://openweathermap.org/api</a>
+            </td>
+            <td>
+                <a href="http://openweathermap.org/maps"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>http://openweathermap.org/maps</a>
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
 
 {% endblock %}
 

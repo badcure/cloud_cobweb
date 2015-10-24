@@ -95,12 +95,6 @@ def before_request(*args, **kwargs):
 def after_request(response):
     return response
 
-@app.errorhandler(404)
-def page_not_found(e):
-    if not flask.g.user_info or not flask.g.user_info.token:
-        return flask.redirect(flask.url_for('rackspacecloud.index'))
-
-
 @app.route('/cloudIdentity/all', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @app.route('/cloudIdentity/all/<path:new_path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def identity_request(new_path=''):
