@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block main_body %}
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <ol class="breadcrumb navbar-right">
+                {% if g.user_info and g.user_info.token %}
+                    <li class="active"><a href="{{ url_for('openweathermap.index') }}">Home</a></li>
+                    <li class="active"><a href="{{ url_for('openweathermap.logout_fn') }}">Logout</a></li>
+                    <li class="active"><a href="{{ url_for('openweathermap.auth_token_view') }}">View Token</a></li>
+                {% else %}
+                    <li class="active"><a href="{{ url_for('openweathermap.login_view') }}">Log In</a></li>
+
+                {% endif %}
+
+            </ol>
+        </div>
+    </nav>
+
+    <h2> Log into openweathermap </h2>
+
+    <pre id="request_code">
+POST asdf
+Content-Type: application/json</pre>
+    <div id="login_api">
+        <div class="json_display">
+
+            <form class="post_json" method="POST" action="{{ url_for('openweathermap.identity_request', new_path='tokens') }}">
+                {{ form.hidden_tag() }}
+                    <pre>
+                    {{ test_dict|format_json_html|safe }}
+                    </pre>
+                <button class="btn btn-primary">Login stuff</button>
+
+            </form>
+        </div>
+    </div>
+    <h2> Use Auth Token </h2>
+
+    Use this if you really don't trust us. Tokens are only valid for the life span, usually 24 hours.
+    <div id="login_api">
+    <pre id="request_code">
+POST asdf
+Content-Type: application/json</pre>
+        <div id="login_api">
+
+        <div class="json_display">
+            <form class="post_json" method="POST" action="{{ url_for('openweathermap.identity_request', new_path='tokens') }}">
+                {{ form_validate.hidden_tag() }}
+                    <pre>
+                    {{ use_token_dict|format_json_html|safe }}
+                    </pre>
+                <button class="btn btn-primary">Use Token</button>
+
+            </form>
+
+        </div>
+    </div>
+{% endblock %}
