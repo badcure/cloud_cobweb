@@ -6,8 +6,43 @@ import requests
 
 
 class RackAPIResult(sugarcoat.base.APIResult):
-    pass
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def add_relation_urls(self, api_base_obj, region, tenant_id):
+        rel_urls = api_base_obj.get_relation_urls()
+        orig_url_kwargs = self.get_resources()
+        orig_url_kwargs['tenant_id'] = tenant_id
+        for index, url_info in enumerate(rel_urls):
+            url_kwargs = copy.deepcopy(orig_url_kwargs)
+            url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or region
+            try:
+                url = url_info[0].format(**url_kwargs)
+            except KeyError:
+                continue
+            resource_type = url_info[1].catalog_key
+            resource_name = url_info[2]
+
+            if '_UNDEFINED' not in url:
+                self.add_relation(url=url, region=url_kwargs['region'], resource_name=resource_name, resource_type=resource_type)
+
+        return
+
+    def add_relation(self, url, region=None, resource_id=None, resource_name=None, resource_type=None):
+        new_url = dict(href=url, rel='rel')
+        if region and region.lower() != 'all':
+            new_url['region'] = region
+        if resource_id:
+            new_url['resource_id'] = resource_id
+        if resource_name:
+            new_url['resource_name'] = resource_name
+        if resource_type:
+            new_url['resource_type'] = resource_type
+
+        new_url['href'] = new_url['href'].format(**new_url)
+
+        self.relation_urls.append(new_url)
 
 class RackAPI(sugarcoat.base.APIBase):
     result_class = RackAPIResult
@@ -21,6 +56,10 @@ class RackAPI(sugarcoat.base.APIBase):
         if not isinstance(identity, Identity):
             raise ValueError("Identity object required")
         self._identity = identity
+
+    @property
+    def token(self):
+        return self._identity.token
 
     @classmethod
     def kwargs_from_request(cls, url, api_result, **kwargs):
@@ -37,6 +76,69 @@ class RackAPI(sugarcoat.base.APIBase):
     def get_auth(self):
         return self._identity
 
+    def displayable_json_auth_request(self, region=None, show_confidential=False, **kwargs):
+        kwargs['headers'] = kwargs.get('headers', {})
+        kwargs['headers']['X-Auth-Token'] = self.token
+        start_time = time.time()
+        try:
+            result = super().displayable_json_auth_request(show_confidential=show_confidential, **kwargs)
+        except requests.RequestException as exc:
+            result = exc
+
+        end_time = time.time()
+
+        if issubclass(self.result_class, RackAPIResult):
+            json_result = self.result_class(result, response_time=end_time-start_time, region=region, identity_obj=self._identity,
+                                            show_confidential=show_confidential)
+            json_result.add_relation_urls(self, region=region, tenant_id=self._identity.tenant_id)
+            return json_result
+        return None
+
+    def get_identity(self):
+        return self._identity
+
+    def filled_out_urls(self, region, **kwargs):
+
+        for kwarg_name in self.url_kwarg_list:
+            kwargs[kwarg_name] = kwargs.get(kwarg_name, 'KEY_{0}_UNDEFINED'.format(kwarg_name))
+
+        url_list = self.available_urls()
+        for index, url in enumerate(url_list):
+            url_list[index] = '/{0}/{1}{2}'.format(self.catalog_key, self.only_region or region, url).format(**kwargs)
+
+        populate = list()
+        for index, url in enumerate(url_list):
+            populate.append(url)
+        populate.sort()
+
+        return {'populated': populate}
+
+    def public_endpoint_urls(self, region=None):
+        if not self._identity.token:
+            return []
+        result = self._identity.service_catalog(name=self.catalog_key,
+                                                region=region)
+
+        return [endpoint.get('publicURL') for endpoint in
+                result[0]['endpoints']]
+
+    def get_api_resource(self, region=None, initial_url_append=None, data_object=None, **kwargs):
+        if not self._identity.token:
+            return {}
+
+        region_url = self.public_endpoint_urls(region=region)[0]
+
+        if '__root__' == initial_url_append.split('/')[1]:
+            initial_url_append = '/' + '/'.join(initial_url_append.split('/')[2:])
+            region_url = '/'.join(region_url.split('/')[0:3])
+
+        url = "{0}{1}".format(region_url, initial_url_append)
+
+        result = self.displayable_json_auth_request(url=url, region=region, **kwargs)
+        if isinstance(data_object, type):
+            return data_object(result)
+
+        return result
 
 BASE_URL = 'https://identity.api.rackspacecloud.com'
 

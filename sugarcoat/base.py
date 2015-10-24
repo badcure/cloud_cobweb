@@ -76,10 +76,8 @@ class APIResult(dict):
             result[SUGARCOAT_RESTFUL_KEY] = self.get_sorted_relations()
         return result
 
-    def add_relation(self, url, region=None, resource_id=None, resource_name=None, resource_type=None):
+    def add_relation(self, url, resource_id=None, resource_name=None, resource_type=None):
         new_url = dict(href=url, rel='rel')
-        if region and region.lower() != 'all':
-            new_url['region'] = region
         if resource_id:
             new_url['resource_id'] = resource_id
         if resource_name:
@@ -116,13 +114,11 @@ class APIResult(dict):
     def get_resources(self):
         return {}
 
-    def add_relation_urls(self, api_base_obj, region, tenant_id):
+    def add_relation_urls(self, api_base_obj):
         rel_urls = api_base_obj.get_relation_urls()
         orig_url_kwargs = self.get_resources()
-        orig_url_kwargs['tenant_id'] = tenant_id
         for index, url_info in enumerate(rel_urls):
             url_kwargs = copy.deepcopy(orig_url_kwargs)
-            url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or region
             try:
                 url = url_info[0].format(**url_kwargs)
             except KeyError:
@@ -137,12 +133,10 @@ class APIResult(dict):
 
 
 class APIBase(object):
-    _identity = None
     catalog_key = ''
     _list_object = None
     _accept_header_json = 'application/json'
     url_kwarg_list = list()
-    only_region = None
     result_class = APIResult
 
     def _auth_request(self, **kwargs):
@@ -152,25 +146,11 @@ class APIBase(object):
         result = self.display_base_request(**kwargs)
         return result
 
-    def displayable_json_auth_request(self, region=None, show_confidential=False, **kwargs):
+    def displayable_json_auth_request(self, show_confidential=False, **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
-        kwargs['headers']['X-Auth-Token'] = self.token
         if self._accept_header_json:
             kwargs['headers']['Accept'] = self._accept_header_json
-        start_time = time.time()
-        try:
-            result = self.display_base_request(**kwargs)
-        except requests.RequestException as exc:
-            result = exc
-
-        end_time = time.time()
-        json_result = None
-        if issubclass(self.result_class, APIResult):
-            json_result = self.result_class(result, response_time=end_time-start_time, identity_obj=self._identity,
-                                            region=region, show_confidential=show_confidential)
-            json_result.add_relation_urls(self, region, self._identity.tenant_id)
-
-        return json_result
+        return self.display_base_request(**kwargs)
 
     @classmethod
     def base_request(cls, method='get', **kwargs):
@@ -195,24 +175,11 @@ class APIBase(object):
     def display_base_request(cls, **kwargs):
         return cls.base_request(**kwargs)
 
-    @property
-    def token(self):
-        return self._identity.token
+    def public_endpoint_urls(self):
+        return []
 
-    def public_endpoint_urls(self, region=None):
-        if not self._identity.token:
-            return []
-        result = self._identity.service_catalog(name=self.catalog_key,
-                                                region=region)
-
-        return [endpoint.get('publicURL') for endpoint in
-                result[0]['endpoints']]
-
-    def get_api_resource(self, region=None, initial_url_append=None, data_object=None, **kwargs):
-        if not self._identity.token:
-            return {}
-
-        region_url = self.public_endpoint_urls(region=region)[0]
+    def get_api_resource(self, initial_url_append=None, data_object=None, **kwargs):
+        region_url = self.public_endpoint_urls()[0]
 
         if '__root__' == initial_url_append.split('/')[1]:
             initial_url_append = '/' + '/'.join(initial_url_append.split('/')[2:])
@@ -220,7 +187,7 @@ class APIBase(object):
 
         url = "{0}{1}".format(region_url, initial_url_append)
 
-        result = self.displayable_json_auth_request(url=url, region=region, **kwargs)
+        result = self.displayable_json_auth_request(url=url, **kwargs)
         if isinstance(data_object, type):
             return data_object(result)
 
@@ -230,14 +197,14 @@ class APIBase(object):
     def available_urls(cls):
         return []
 
-    def filled_out_urls(self, region, **kwargs):
+    def filled_out_urls(self, **kwargs):
 
         for kwarg_name in self.url_kwarg_list:
             kwargs[kwarg_name] = kwargs.get(kwarg_name, 'KEY_{0}_UNDEFINED'.format(kwarg_name))
 
         url_list = self.available_urls()
         for index, url in enumerate(url_list):
-            url_list[index] = '/{0}/{1}{2}'.format(self.catalog_key, self.only_region or region, url).format(**kwargs)
+            url_list[index] = '/{0}/{2}'.format(self.catalog_key, url).format(**kwargs)
 
         populate = list()
         for index, url in enumerate(url_list):
@@ -268,10 +235,3 @@ class APIBase(object):
             if common_ids and possible_class != self.__class__:
                 result_list.append(possible_class)
         return result_list
-
-    @classmethod
-    def get_catalog_api(cls, *args, **kwargs):
-        return None
-
-    def get_identity(self):
-        return self._identity

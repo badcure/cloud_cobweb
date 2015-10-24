@@ -9,7 +9,7 @@
 {% block main_body %}
     <nav class="navbar navbar-default navbar-fixed-top">
         <div class="container">
-            <p class="navbar-text"><a href="{{ url_for('openweathermap.index') }}"><span class="glyphicon glyphicon-cloud" aria-hidden="true"></span>Current Weather Data</a></p>
+            <p class="navbar-text"><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather') }}"><span class="glyphicon glyphicon-cloud" aria-hidden="true"></span>Current Weather Data</a></p>
 
             <ol class="breadcrumb navbar-right">
                 <li class="active"><a href="{{ url_for('openweathermap.index') }}">Home</a></li>
@@ -22,14 +22,13 @@
 
     <div id="complete_service_catalog">
         <h1>APIs</h1>
-        <h2>Service Token Endpoints</h2>
+        <h2>Endpoints</h2>
             <table class="table-striped table">
-            <thead><tr><th>Service Name</th><th>DFW</th><th>IAD</th><th>ORD</th><th>LON</th><th>HKG</th><th>SYD</th></tr></thead>
+            <thead><tr><th>Service Name</th><th>Description</th><th>External Link</th></thead>
             <tbody>
-
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather') }}">Current Weather</a></td><td>Current Weather Info</td><td><a href="http://openweathermap.org/current"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Current Weather</a></td></tr>
             </tbody>
             </table>
-
     </div>
 
 {% endblock %}

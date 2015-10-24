@@ -26,5 +26,3 @@ class APIBase(sugarcoat.base.APIBase):
 
     def get_auth(self):
         return self._identity
-
-
