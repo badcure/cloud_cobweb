@@ -1,12 +1,12 @@
 import flask
 import string
-import re
 import flask_wtf
 import wtforms
 from ..base import APIBase, APIResult
 from ..services import get_catalog_api
 
-app = flask.Blueprint('openweathermap', __name__, url_prefix='/openweathermap', static_folder='static',
+
+app = flask.Blueprint('sunlightfoundation', __name__, url_prefix='/sunlightfoundation', static_folder='static',
                       template_folder='./templates')
 
 
@@ -41,9 +41,10 @@ def display_json(response, template_kwargs=None, **kwargs):
 # noinspection PyUnusedLocal
 @app.before_request
 def before_request(*args, **kwargs):
-    flask.g.openweathermap_api = None
-    if 'openweathermap_apikey' in flask.session:
-        flask.g.openweathermap_api = flask.session['openweathermap_apikey']
+    flask.g.sunlightfoundation_apikey = None
+    if 'sunlightfoundation_apikey' in flask.session:
+        flask.g.sunlightfoundation_apikey = flask.session['sunlightfoundation_apikey']
+
 
 @app.after_request
 def after_request(response):
@@ -57,7 +58,7 @@ def login_view():
     template_info['message'] = ''
     template_info['form'] = LoginInfo()
     if flask.request.method == 'POST' and template_info['form'].validate_on_submit():
-        flask.session['openweathermap_apikey'] = template_info['form'].apikey.data
+        flask.session['sunlightfoundation_apikey'] = template_info['form'].apikey.data
         return flask.redirect(flask.url_for('{0}.index'.format(app.name)))
     return flask.Response(flask.render_template('{0}/login.html'.format(app.name), **template_info))
 
@@ -67,9 +68,9 @@ def logout_view():
     # Here we use a class of some kind to represent and validate our
     # client-side form data. For example, WTForms is a library that will
     # handle this for us, and we use a custom LoginFormAPI to validate.
-    flask.g.openweathermap_api = None
-    if 'openweathermap_apikey' in flask.session:
-        del flask.session['openweathermap_apikey']
+    flask.g.sunlightfoundation_apikey = None
+    if 'sunlightfoundation_apikey' in flask.session:
+        del flask.session['sunlightfoundation_apikey']
 
     return flask.redirect('/')
 
@@ -86,18 +87,20 @@ def index():
 @app.route('/<string:servicename>')
 @app.route('/<string:servicename>/<path:new_path>')
 def services_view(servicename, new_path=''):
-    if flask.g.openweathermap_api is None:
+    if flask.g.sunlightfoundation_apikey is None:
         return flask.redirect(flask.url_for('{0}.login_view'.format(app.name)))
-    flask.g.list_obj = get_catalog_api(servicename)(flask.g.openweathermap_api)
+    flask.g.list_obj = get_catalog_api(servicename)(flask.g.sunlightfoundation_apikey)
     query_args = {}
     new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
 
     for key, value in flask.request.args.items():
         query_args[key] = value
 
-    flask.g.api_response = flask.g.list_obj.displayable_json_auth_request(path=new_path, params=query_args)
+    request_url = flask.g.list_obj.root_url
+    if new_path:
+        request_url += '/'+new_path
+    flask.g.api_response = flask.g.list_obj.displayable_json_auth_request(url=request_url, params=query_args)
     kwargs = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'])
 
     template_kwargs = dict()
-
     return display_json(response=flask.g.api_response, template_kwargs=template_kwargs, **kwargs)

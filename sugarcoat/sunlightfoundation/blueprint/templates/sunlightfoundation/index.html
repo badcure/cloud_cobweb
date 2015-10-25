@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% set header_class="auth_header" %}
+
+{% block header_body %}
+{% endblock %}
+
+
+{% block main_body %}
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <p class="navbar-text"><a href="{{ url_for('sunlightfoundation.services_view', servicename='currentWeather') }}"><span class="glyphicon glyphicon-cloud" aria-hidden="true"></span>Current Weather Data</a></p>
+
+            <ol class="breadcrumb navbar-right">
+                <li class="active"><a href="{{ url_for('sunlightfoundation.index') }}">Home</a></li>
+                <li class="active"><a href="{{ url_for('sunlightfoundation.logout_view') }}">Logout</a></li>
+
+            </ol>
+        </div>
+    </nav>
+
+
+    <div id="complete_service_catalog">
+        <h1>APIs</h1>
+        <h2>Congress</h2>
+            <table class="table-striped table">
+            <thead><tr><th>Service Name</th><th>Description</th><th>External Link</th></thead>
+            <tbody>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress') }}">Root</a></td><td>Congress</td><td><a href="https://sunlightlabs.github.io/congress/"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Congress docs</a></td></tr>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress', new_path='legislators') }}">/legislators</a></td><td>Legislators</td><td><a href="https://sunlightlabs.github.io/congress/legislators.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Legislators docs</a></td></tr>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress', new_path='committees') }}">/committees</a></td><td>committees</td><td><a href="https://sunlightlabs.github.io/congress/committees.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>committees docs</a></td></tr>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress', new_path='bills') }}">/bills</a></td><td>bills</td><td><a href="https://sunlightlabs.github.io/congress/bills.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>bills docs</a></td></tr>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress', new_path='amendments') }}">/amendments</a></td><td>amendments</td><td><a href="https://sunlightlabs.github.io/congress/amendments.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>amendments docs</a></td></tr>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress', new_path='nominations') }}">/nominations</a></td><td>nominations</td><td><a href="https://sunlightlabs.github.io/congress/nominations.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>nominations docs</a></td></tr>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress', new_path='votes') }}">/votes</a></td><td>votes</td><td><a href="https://sunlightlabs.github.io/congress/votes.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>votes docs</a></td></tr>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress', new_path='floor_updates') }}">/floor_updates</a></td><td>floor_updates</td><td><a href="https://sunlightlabs.github.io/congress/floor_updates.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>floor_updates docs</a></td></tr>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress', new_path='hearings') }}">/hearings</a></td><td>hearings</td><td><a href="https://sunlightlabs.github.io/congress/hearings.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>hearings docs</a></td></tr>
+            <tr><td><a href="{{ url_for('sunlightfoundation.services_view',  servicename='congress', new_path='upcoming_bills') }}">/upcoming_bills</a></td><td>upcoming_bills</td><td><a href="https://sunlightlabs.github.io/congress/upcoming_bills.html"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>upcoming_bills docs</a></td></tr>
+            </tbody>
+            </table>
+
+    </div>
+
+{% endblock %}
+

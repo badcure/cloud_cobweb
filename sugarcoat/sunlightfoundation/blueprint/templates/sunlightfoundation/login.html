@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block main_body %}
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <ol class="breadcrumb navbar-right">
+                {% if g.user_info and g.user_info.token %}
+                    <li class="active"><a href="{{ url_for('sunlightfoundation.index') }}">Home</a></li>
+                    <li class="active"><a href="{{ url_for('sunlightfoundation.logout_fn') }}">Logout</a></li>
+                    <li class="active"><a href="{{ url_for('sunlightfoundation.auth_token_view') }}">View Token</a></li>
+                {% else %}
+                    <li class="active"><a href="{{ url_for('sunlightfoundation.login_view') }}">Log In</a></li>
+
+                {% endif %}
+
+            </ol>
+        </div>
+    </nav>
+
+    <h2> Provide API key </h2>
+
+    <div id="login_api">
+        <div class="json_display">
+
+            <form method="POST" action="{{ url_for('sunlightfoundation.login_view') }}">
+                {{ form.hidden_tag() }}
+                API Key: {{ form.apikey }}
+                {% if form.apikey.errors %}
+                    <ul class=errors>
+                        {% for error in form.apikey.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <button class="btn btn-primary">Login stuff</button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

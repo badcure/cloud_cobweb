@@ -1,5 +1,4 @@
 import re
-import pprint
 import flask
 from . import base
 
@@ -115,7 +114,10 @@ def convert_to_urls(result):
     if not isinstance(result, str):
         result = flask.json.dumps(result, indent=2)
     if not hasattr(flask.g, 'user_info') or not flask.g.user_info:
+        match_url = re.compile("\"(https?:\/\/[^\"]+)\"")
+        result = match_url.sub(r'"<a href="\1">\1 <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>"', result)
         return result
+
     if flask.g.list_obj:
         for replace_url, replace_url_info in flask.g.list_obj.get_auth().url_to_catalog_dict():
             result = result.replace('/' + '/'.join(replace_url_info), replace_url)
@@ -130,7 +132,6 @@ def convert_to_urls(result):
         match_url = re.compile("\"({0})/*([^\"]*)\"".format(url))
         if len(replace_url_info) == 3:
             result = match_url.sub(r"<a href='{url_prefix}/{0}/{1}/{2}/\2'>\1/\2</a>".format(*replace_url_info, url_prefix=url_prefix), result)
-
     match_url = re.compile("\"((https?:\/\/)([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?)\"")
     result = match_url.sub(r'"<a href="\1">\1 <span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a>"', result)
 

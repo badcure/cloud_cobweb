@@ -12,6 +12,7 @@ class APIResult(dict):
     safe_html = None
     relation_urls = None
     response_time = -1
+
     def __init__(self, result, request_headers=None, response_headers=None, url=None, status_code=-2,
                  method='Unknown', request_body=None, show_confidential=False,  **kwargs):
         super().__init__(**kwargs)
@@ -132,10 +133,10 @@ class APIResult(dict):
 
 class APIBase(object):
     catalog_key = ''
-    _list_object = None
     _accept_header_json = 'application/json'
     url_kwarg_list = list()
     result_class = None
+    root_url = None
 
     def _auth_request(self, **kwargs):
         if self.token:
