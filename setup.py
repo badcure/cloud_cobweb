@@ -28,14 +28,16 @@ def find_templates(path, parent=None, include_dir=False):
     for possible_dir in os.listdir('/'.join(parent)):
         possible_path = '/'.join(parent + [possible_dir])
 
+        if include_dir and os.path.isfile(possible_path):
+            results.append(possible_path)
+            continue
+
         if not os.path.isdir(possible_path):
             continue
-        if possible_dir in ['templates','static'] and parent[-1] == 'blueprint':
-            include_dir = True
 
-        if os.path.isdir(possible_path):
-            if include_dir:
-                results.append('{0}/*'.format(possible_path))
+        if possible_dir in ['templates','static'] and parent[-1] == 'blueprint':
+            results += find_templates(possible_dir, parent, True)
+        else:
             results += find_templates(possible_dir, parent, include_dir)
 
     return results
@@ -46,6 +48,14 @@ with open('requirements.txt') as f:
 
 with open('VERSION') as f:
     version = f.read().strip()
+
+def get_sugarcoat_data():
+    result = []
+    for data_dir in find_templates('sugarcoat'):
+        if data_dir.index('sugarcoat/') == 0:
+            data_dir = data_dir[10:]
+        result.append(data_dir)
+    return result
 
 setuptools.setup(
     name='sugarcoat',
@@ -58,7 +68,7 @@ setuptools.setup(
     packages=setuptools.find_packages() + ['sugarcoat.api.templates'],
     include_package_data=True,
     package_data={'sugarcoat': ['api/templates/*', 'api/static/*.js', 'api/static/*.css', 'api/static/js/*',
-                                'api/static/css/*', 'api/static/fonts/*'] + find_templates('sugarcoat') },
+                                'api/static/css/*', 'api/static/fonts/*'] + get_sugarcoat_data() },
     zip_safe=False,
     install_requires=required,
 )
