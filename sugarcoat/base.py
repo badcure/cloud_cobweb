@@ -7,17 +7,15 @@ MASK_HEADERS = ('X-Auth-Token',)
 SUGARCOAT_RESTFUL_KEY = '~sugarcoat'
 
 class APIResult(dict):
-    _identity_obj = None
     additional_url_list = []
     result_type = 'Unknown'
     safe_html = None
     relation_urls = None
-
+    response_time = -1
     def __init__(self, result, request_headers=None, response_headers=None, url=None, status_code=-2,
-                 identity_obj=None, method='Unknown', request_body=None, show_confidential=False,  **kwargs):
+                 method='Unknown', request_body=None, show_confidential=False,  **kwargs):
         super().__init__(**kwargs)
         self.relation_urls = list()
-        self._identity_obj = identity_obj
         if isinstance(result, requests.HTTPError):
             result = result.response
 
@@ -137,7 +135,7 @@ class APIBase(object):
     _list_object = None
     _accept_header_json = 'application/json'
     url_kwarg_list = list()
-    result_class = APIResult
+    result_class = None
 
     def _auth_request(self, **kwargs):
         if self.token:
@@ -150,7 +148,12 @@ class APIBase(object):
         kwargs['headers'] = kwargs.get('headers', {})
         if self._accept_header_json:
             kwargs['headers']['Accept'] = self._accept_header_json
-        return self.display_base_request(**kwargs)
+        result = self.display_base_request(**kwargs)
+        if issubclass(self.result_class, APIResult) and isinstance(self.result_class, type):
+            json_result = self.result_class(result, show_confidential=show_confidential)
+            json_result.add_relation_urls(self)
+            return json_result
+
 
     @classmethod
     def base_request(cls, method='get', **kwargs):

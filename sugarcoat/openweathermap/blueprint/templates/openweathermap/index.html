@@ -21,14 +21,46 @@
 
 
     <div id="complete_service_catalog">
-        <h1>APIs</h1>
-        <h2>Endpoints</h2>
+        <h1>APIs(All for Dallas as an example)</h1>
+        <h2>City Name</h2>
             <table class="table-striped table">
             <thead><tr><th>Service Name</th><th>Description</th><th>External Link</th></thead>
             <tbody>
-            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather') }}">Current Weather</a></td><td>Current Weather Info</td><td><a href="http://openweathermap.org/current"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Current Weather</a></td></tr>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="weather", q="dallas") }}">Current Weather</a></td><td>Current Weather Info</td><td><a href="http://openweathermap.org/current"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Current Weather</a></td></tr>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="forecast", q="dallas") }}">5 day Forecast</a></td><td>5 day Forecast</td><td><a href="http://openweathermap.org/forecast5#5days"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>5 day forcast</a></td></tr>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="forecast/daily", cnt=16, q="dallas") }}">Daily Forecast</a></td><td>Daily Forecast</td><td><a href="http://openweathermap.org/forecast5#5days"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Daily forcast</a></td></tr>
             </tbody>
             </table>
+        <h2>City ID</h2>
+        City ID's can be found here: <a href="http://bulk.openweathermap.org/sample/"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Bulk Data</a>
+        <table class="table-striped table">
+            <thead><tr><th>Service Name</th><th>Description</th><th>External Link</th></thead>
+            <tbody>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="weather", id="4684888") }}">Current Weather</a></td><td>Current Weather Info</td><td><a href="http://openweathermap.org/current"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Current Weather</a></td></tr>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="forecast", id="4684888") }}">5 day Forecast</a></td><td>5 day Forecast</td><td><a href="http://openweathermap.org/forecast5#5days"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>5 day forcast</a></td></tr>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="forecast/daily", cnt=16, id="4684888") }}">Daily Forecast</a></td><td>Daily Forecast</td><td><a href="http://openweathermap.org/forecast5#5days"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Daily forcast</a></td></tr>
+            </tbody>
+        </table>
+        <h2>Longitued and Latitude</h2>
+        <table class="table-striped table">
+            <thead><tr><th>Service Name</th><th>Description</th><th>External Link</th></thead>
+            <tbody>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="weather", lon="-96.806671", lat="32.783058") }}">Current Weather</a></td><td>Current Weather Info</td><td><a href="http://openweathermap.org/current"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Current Weather</a></td></tr>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="forecast", lon="-96.806671", lat="32.783058") }}">5 day Forecast</a></td><td>5 day Forecast</td><td><a href="http://openweathermap.org/forecast5#5days"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>5 day forcast</a></td></tr>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="forecast/daily", cnt=16, lon="-96.806671", lat="32.783058") }}">Daily Forecast</a></td><td>Daily Forecast</td><td><a href="http://openweathermap.org/forecast5#5days"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Daily forcast</a></td></tr>
+            </tbody>
+        </table>
+        <h2>Zipcode</h2>
+        <table class="table-striped table">
+            <thead><tr><th>Service Name</th><th>Description</th><th>External Link</th></thead>
+            <tbody>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="weather", zip="75201") }}">Current Weather</a></td><td>Current Weather Info</td><td><a href="http://openweathermap.org/current"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Current Weather</a></td></tr>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="forecast", zip="75201") }}">5 day Forecast</a></td><td>5 day Forecast</td><td><a href="http://openweathermap.org/forecast5#5days"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>5 day forcast</a></td></tr>
+            <tr><td><a href="{{ url_for('openweathermap.services_view', servicename='currentWeather', new_path="forecast/daily", cnt=16, zip="75201") }}">Daily Forecast</a></td><td>Daily Forecast</td><td><a href="http://openweathermap.org/forecast5#5days"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span>Daily forcast</a></td></tr>
+            </tbody>
+        </table>
+
+
     </div>
 
 {% endblock %}

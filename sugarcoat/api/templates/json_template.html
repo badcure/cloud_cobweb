@@ -35,11 +35,6 @@
             <button class="btn btn-primary navbar-btn" type="button" data-toggle="collapse" data-target="#response_header">Response Header</button>
             <button class="btn {% if json_result.response_body  %}btn-primary{% else %}btn-disabled{% endif %} navbar-btn" type="button" data-toggle="collapse" data-target="#response_body">Response Body</button>
             <button class="btn btn-primary navbar-btn" type="button" data-toggle="collapse" data-target="#additional_urls">Additional URLs</button>
-            <ol class="breadcrumb navbar-right">
-                <li><a href="{{ url_for('rackspacecloud.index') }}">Home</a></li>
-                <li>{{ g.list_obj.catalog_key }}</li>
-                <li class="active"><a href="{{ url_for('rackspacecloud.service_catalog_list', servicename=g.list_obj.catalog_key, region=region) }}">{{ region }}</a></li>
-            </ol>
         </div>
     </nav>
 
@@ -129,7 +124,6 @@
     </div>
 
 
-    {% if g.user_info.token %}
         <div class="panel-group">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -162,7 +156,6 @@
             </div>
         </div>
 
-    {%  endif %}
 {% endblock %}
 
 

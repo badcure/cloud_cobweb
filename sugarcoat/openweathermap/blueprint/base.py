@@ -15,13 +15,11 @@ class LoginInfo(flask_wtf.Form):
                                                wtforms.validators.Regexp('^[a-f0-9]+$')])
 
 def convert_to_related(*args, **kwargs):
-    result = dict()
+    result = dict(links=dict())
     return result
 
 
-def display_json(response, region, template_kwargs=None, **kwargs):
-    region = region.lower()
-
+def display_json(response, template_kwargs=None, **kwargs):
     if not template_kwargs:
         template_kwargs = dict()
 
@@ -31,7 +29,7 @@ def display_json(response, region, template_kwargs=None, **kwargs):
                 if mime_type == 'text/html':
                     return flask.Response(flask.render_template(
                         'json_template.html', json_result=response, additional_urls=convert_to_related(
-                            region=region, api_result=response), **template_kwargs))
+                            api_result=response), **template_kwargs))
                 elif mime_type == 'application/json' or mime_type == '*/*':
                     return flask.jsonify(response, **kwargs)
     except IndexError:
@@ -91,21 +89,16 @@ def index():
 def services_view(servicename, new_path=''):
     if flask.g.openweathermap_api is None:
         return flask.redirect(flask.url_for('{0}.login_view'.format(app.name)))
-    flask.g.list_obj = get_catalog_api(servicename)
-    print(flask.g.list_obj)
-    query_args = ''
+    flask.g.list_obj = get_catalog_api(servicename)(flask.g.openweathermap_api)
+    query_args = {}
     new_path = ''.join(list(filter(lambda x: x in string.printable, new_path)))
 
     for key, value in flask.request.args.items():
-        query_args += '&{0}={1}'.format(key, value)
-    if query_args:
-        query_args = '?'+ query_args[1:]
-    new_path += query_args
-    flask.g.api_response = flask.g.list_obj.get_api_resource()
+        query_args[key] = value
+
+    flask.g.api_response = flask.g.list_obj.displayable_json_auth_request(path=new_path, params=query_args)
     kwargs = flask.g.list_obj.kwargs_from_request(url=new_path, api_result=flask.g.api_response['result'])
 
     template_kwargs = dict()
 
-    if 'region' in kwargs:
-        del kwargs['region']
     return display_json(response=flask.g.api_response, template_kwargs=template_kwargs, **kwargs)

@@ -114,7 +114,7 @@ def print_headers(obj):
 def convert_to_urls(result):
     if not isinstance(result, str):
         result = flask.json.dumps(result, indent=2)
-    if not flask.g.user_info:
+    if not hasattr(flask.g, 'user_info') or not flask.g.user_info:
         return result
     if flask.g.list_obj:
         for replace_url, replace_url_info in flask.g.list_obj.get_auth().url_to_catalog_dict():
