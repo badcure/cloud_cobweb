@@ -35,7 +35,7 @@ def find_templates(path, parent=None, include_dir=False):
         if not os.path.isdir(possible_path):
             continue
 
-        if possible_dir in ['templates','static'] and parent[-1] == 'blueprint':
+        if possible_dir in ['templates','static'] and parent[-1] in ['blueprint', 'api']:
             results += find_templates(possible_dir, parent, True)
         else:
             results += find_templates(possible_dir, parent, include_dir)
@@ -67,8 +67,8 @@ setuptools.setup(
     url='https://github.com/badcure/sugarcoat/',
     packages=setuptools.find_packages() + ['sugarcoat.api.templates'],
     include_package_data=True,
-    package_data={'sugarcoat': ['api/templates/*', 'api/static/*.js', 'api/static/*.css', 'api/static/js/*',
-                                'api/static/css/*', 'api/static/fonts/*'] + get_sugarcoat_data() },
+    package_data={'sugarcoat.api': ['templates/*', 'static/*.js', 'static/*.css', 'static/js/*',
+                                'static/css/*', 'static/fonts/*'] + get_sugarcoat_data() },
     zip_safe=False,
     install_requires=required,
 )
