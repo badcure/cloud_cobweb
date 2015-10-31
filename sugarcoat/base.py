@@ -2,6 +2,7 @@ import copy
 import requests
 import time
 import json
+import flask
 
 MASK_HEADERS = ('X-Auth-Token',)
 SUGARCOAT_RESTFUL_KEY = '~sugarcoat'
@@ -14,7 +15,7 @@ class APIResult(dict):
     response_time = -1
 
     def __init__(self, result, request_headers=None, response_headers=None, url=None, status_code=-2,
-                 method='Unknown', request_body=None, show_confidential=False,  **kwargs):
+                 method='Unknown', request_body=None, show_confidential=False, response_time=-1, **kwargs):
         super().__init__(**kwargs)
         self.relation_urls = list()
         if isinstance(result, requests.HTTPError):
@@ -60,6 +61,7 @@ class APIResult(dict):
         self['status_code'] = status_code
         self['method'] = method
         self['request_body'] = request_body
+        self.response_time = response_time
 
         if not show_confidential:
             for header_name in MASK_HEADERS:
@@ -149,11 +151,15 @@ class APIBase(object):
         kwargs['headers'] = kwargs.get('headers', {})
         if self._accept_header_json:
             kwargs['headers']['Accept'] = self._accept_header_json
+        start_time = time.time()
         result = self.display_base_request(**kwargs)
-        if issubclass(self.result_class, APIResult) and isinstance(self.result_class, type):
-            json_result = self.result_class(result, show_confidential=show_confidential)
+        end_time = time.time()
+        response_time=end_time-start_time
+        if issubclass(self.result_class, APIResult):
+            json_result = self.result_class(result, show_confidential=show_confidential, response_time=response_time)
             json_result.add_relation_urls(self)
             return json_result
+        return result
 
 
     @classmethod
@@ -171,6 +177,8 @@ class APIBase(object):
 
         kwargs['headers']['User-Agent'] = '{0} https://sugarcoat.in'.format(kwargs['headers'].get(
             'User-Agent', requests.utils.default_user_agent()))
+        if flask.request.remote_addr:
+            kwargs['headers']['User-Agent'] += ' requestip:{0}'.format(flask.request.remote_addr)
         kwargs['headers']['Connection'] = kwargs['headers'].get('Connection', 'close')
         kwargs['timeout'] = kwargs.get('timeout', 10)
         return getattr(requests, method.lower())(**kwargs)

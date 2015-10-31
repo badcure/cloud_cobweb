@@ -6,17 +6,19 @@ import requests
 
 
 class RackAPIResult(sugarcoat.base.APIResult):
+    tenant_id = None
+    region = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def add_relation_urls(self, api_base_obj, region, tenant_id):
+    def add_relation_urls(self, api_base_obj):
         rel_urls = api_base_obj.get_relation_urls()
         orig_url_kwargs = self.get_resources()
-        orig_url_kwargs['tenant_id'] = tenant_id
+        orig_url_kwargs['tenant_id'] = self.tenant_id
         for index, url_info in enumerate(rel_urls):
             url_kwargs = copy.deepcopy(orig_url_kwargs)
-            url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or region
+            url_kwargs['region'] = url_info[1].only_region or url_kwargs.get('region') or self.region
             try:
                 url = url_info[0].format(**url_kwargs)
             except KeyError:
@@ -79,20 +81,16 @@ class RackAPI(sugarcoat.base.APIBase):
     def displayable_json_auth_request(self, region=None, show_confidential=False, **kwargs):
         kwargs['headers'] = kwargs.get('headers', {})
         kwargs['headers']['X-Auth-Token'] = self.token
-        start_time = time.time()
         try:
             result = super().displayable_json_auth_request(show_confidential=show_confidential, **kwargs)
         except requests.RequestException as exc:
             result = exc
 
-        end_time = time.time()
-
-        if issubclass(self.result_class, RackAPIResult):
-            json_result = self.result_class(result, response_time=end_time-start_time, region=region, identity_obj=self._identity,
-                                            show_confidential=show_confidential)
-            json_result.add_relation_urls(self, region=region, tenant_id=self._identity.tenant_id)
-            return json_result
-        return None
+        if isinstance(result, RackAPIResult):
+            result.region = region
+            result.tenant_id = self._identity.tenant_id
+            result.add_relation_urls(api_base_obj=self)
+        return result
 
     def get_identity(self):
         return self._identity
@@ -201,7 +199,8 @@ class Identity(RackAPI):
     @property
     def token(self):
         self.prepare_auth()
-        if self._auth:
+        if self._auth and 'access' in self._auth:
+            print(self._auth)
             return self._auth['access']['token']['id']
         return None
 
